@@ -56,32 +56,44 @@ extern int yydebug;
     TM_LEFT_PAREN = 262,
     TM_RIGHT_PAREN = 263,
     TM_SEMICOL = 264,
-    TM_MALLOC = 265,
-    TM_RI = 266,
-    TM_RC = 267,
-    TM_WI = 268,
-    TM_WC = 269,
-    TM_VAR = 270,
-    TM_IF = 271,
-    TM_THEN = 272,
-    TM_ELSE = 273,
-    TM_WHILE = 274,
-    TM_DO = 275,
-    TM_ASGNOP = 276,
-    TM_OR = 277,
-    TM_AND = 278,
-    TM_NOT = 279,
-    TM_LT = 280,
-    TM_LE = 281,
-    TM_GT = 282,
-    TM_GE = 283,
-    TM_EQ = 284,
-    TM_NE = 285,
-    TM_PLUS = 286,
-    TM_MINUS = 287,
-    TM_MUL = 288,
-    TM_DIV = 289,
-    TM_MOD = 290
+    TM_COMMA = 265,
+    TM_MALLOC = 266,
+    TM_RI = 267,
+    TM_RC = 268,
+    TM_WI = 269,
+    TM_WC = 270,
+    TM_VAR = 271,
+    TM_IF = 272,
+    TM_THEN = 273,
+    TM_ELSE = 274,
+    TM_WHILE = 275,
+    TM_DO = 276,
+    TM_FOR = 277,
+    TM_ASGNOP = 278,
+    TM_OR = 279,
+    TM_AND = 280,
+    TM_NOT = 281,
+    TM_ADDR = 282,
+    TM_LT = 283,
+    TM_LE = 284,
+    TM_GT = 285,
+    TM_GE = 286,
+    TM_EQ = 287,
+    TM_NE = 288,
+    TM_PLUS = 289,
+    TM_MINUS = 290,
+    TM_MUL = 291,
+    TM_DIV = 292,
+    TM_MOD = 293,
+    TM_UMINUS = 294,
+    TM_DEREF = 295,
+    TM_PROC = 296,
+    TM_FUNC = 297,
+    TM_CONT = 298,
+    TM_BREAK = 299,
+    TM_RET = 300,
+    TM_INT = 301,
+    TM_PTR = 302
   };
 #endif
 
@@ -95,9 +107,17 @@ unsigned int n;
 char * i;
 struct expr * e;
 struct cmd * c;
+
+// newly add one: add all the struct defined in lang.h to the union
+struct glob_item * globitem;
+struct var_list * varl;
+struct expr_list * exprl;
+struct glob_item_list * globiteml;
+//
+
 void * none;
 
-#line 101 "parser.h"
+#line 121 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -12,8 +12,12 @@
     return TM_NAT;
 }
 
-"var" {
-    return TM_VAR;
+"int" {
+    return TM_INT;
+}
+
+"ptr" {
+    return TM_PTR;
 }
 
 "if" {
@@ -34,6 +38,30 @@
 
 "do" {
     return TM_DO;
+}
+
+"for" {
+    return TM_FOR;
+}
+
+"proc" {
+    return TM_PROC;
+}
+
+"func" {
+    return TM_FUNC;
+}
+
+"break" {
+    return TM_BREAK;
+}
+
+"continue" {
+    return TM_CONT;
+}
+
+"return" {
+    return TM_RET;
 }
 
 "malloc" {
@@ -63,6 +91,10 @@
 
 ";" {
     return TM_SEMICOL;
+    }
+
+"," {
+    return TM_COMMA;
     }
 
 "(" {
@@ -127,6 +159,10 @@
 
 "=" {
     return TM_ASGNOP;
+    }
+
+"&" {
+    return TM_ADDR;
     }
 
 "&&" {
