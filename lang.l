@@ -12,6 +12,10 @@
     return TM_NAT;
 }
 
+"var" {
+    return TM_VAR;
+}
+
 "int" {
     return TM_INT;
 }

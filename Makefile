@@ -36,9 +36,8 @@ all: main
 clean:
 	rm -f lexer.h lexer.c parser.h parser.c *.o main
 
-%.c: %.y
+%.cpp: %.y
 
-%.c: %.l
+%.cpp: %.l
 
 .DEFAULT_GOAL := all
-
