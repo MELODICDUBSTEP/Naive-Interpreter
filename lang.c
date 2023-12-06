@@ -516,4 +516,3 @@ void print_glob_item_list(struct glob_item_list * gs) {
   print_glob_item(gs -> data);
   print_glob_item_list(gs -> next);
 }
-

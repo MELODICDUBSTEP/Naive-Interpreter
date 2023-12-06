@@ -185,7 +185,11 @@ NT_CMD:
  //This is what I modified:
 //Now we can convert a variable declaration command into
 //TM_INT TM_IDENT or TM_INT NT_PTRS TM__IDENT
-  TM_INT TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
+  TM_VAR TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
+  {
+    $$ = (TDecl($2, $4));
+  }
+| TM_INT TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
   {
     $$ = (TDecl($2, $4));
   }
