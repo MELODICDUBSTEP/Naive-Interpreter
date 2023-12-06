@@ -1,3 +1,4 @@
+proc main() {
   var n;
   var i;
   var s;
@@ -10,3 +11,4 @@
   };
   write_int(s);
   write_char(10)
+}

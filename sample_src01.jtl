@@ -1,16 +1,22 @@
-  var n;
+func test_prime(n) {
   var i;
   var flag;
-  n = read_int();
   i = 2;
   flag = 1;
-  while (flag && i * i <= n) do {
+  while (i * i <= n) do {
     if (n % i == 0)
-    then { flag = 0 }
+    then { flag = 0; break }
     else { flag = 1 };
     i = i + 1
   };
-  if (flag)
+  __return = flag
+}
+
+;
+
+proc main() {
+  n = read_int();
+  if (test_prime(n))
   then {
     write_char(80);
     write_char(82);
@@ -30,4 +36,4 @@
     write_char(69);
     write_char(10)
   }
-    
+}

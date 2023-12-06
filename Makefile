@@ -31,6 +31,12 @@ main.o: main.c lexer.h parser.h lang.h
 main: lang.o parser.o lexer.o interpreter.o lib.o main.o
 	gcc lang.o parser.o lexer.o interpreter.o lib.o main.o -o main
 
+main1.o: main1.c lexer.h parser.h lang.h
+	gcc -c main1.c
+
+main1: lang.o parser.o lexer.o interpreter.o lib.o main1.o
+	gcc lang.o parser.o lexer.o interpreter.o lib.o main1.o -o main1
+
 all: main
 
 clean:
