@@ -76,7 +76,7 @@ void * none;
 %type <e> NT_EXPR
 
 
-//This is what I added: I add NT_PTRS to represent multiple TM_PTRS
+//This is what I added: I add NT_PTRS to represent multiple TM_PTR
 %type <n> NT_PTRS
 
 // NT_EXPRL is list of expressions used in calling the proc
@@ -129,6 +129,14 @@ NT_GLOBAL:
     //This function create the global variable
     //struct glob_item * TGlobVar(char * name);
   }
+| TM_INT TM_IDENT
+  {
+    $$ = (TGlobVar($2, 0));
+  }
+| TM_INT NT_PTRS TM_IDENT
+  {
+    $$ = (TGlobVar($3, $2));
+  }
 | TM_FUNC TM_IDENT TM_LEFT_PAREN NT_VARL TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
   {
     $$ = (TFuncDef($2, $4, $7));//This function define the free function
@@ -150,14 +158,22 @@ NT_GLOBAL:
 ;
 
 NT_VARL:
-  TM_IDENT
+  TM_INT TM_IDENT
   {
-    $$ = (TVCons($1, TVNil(), 0));
+    $$ = (TVCons($2, TVNil(), 0));
+  }
+| TM_INT NT_PTRS TM_IDENT
+  {
+    $$ = (TVCons($3, TVNil(), $2));
     //struct var_list * TVCons(char * name, struct var_list * next);
   }
-| TM_IDENT TM_COMMA NT_VARL
+| TM_INT NT_PTRS TM_IDENT TM_COMMA NT_VARL
   {
-    $$ = (TVCons($1, $3, 0));
+    $$ = (TVCons($3, $5, $2));
+  }
+| TM_INT TM_IDENT TM_COMMA NT_VARL
+  {
+    $$ = (TVCons($2, $4, 0));
   }
 ;
 
