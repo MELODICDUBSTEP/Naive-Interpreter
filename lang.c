@@ -80,10 +80,11 @@ struct expr * TConst(unsigned int value) {
   return res;
 }
 
-struct expr * TVar(char * name) {
+struct expr * TVar(char * name, int num_of_ptr) {
   struct expr * res = new_expr_ptr();
   res -> t = T_VAR;
   res -> d.VAR.name = name;
+  res -> d.VAR.num_of_ptr = num_of_ptr;
   return res;
 }
 
@@ -159,10 +160,11 @@ struct expr * TFunc(char * name, struct expr_list * args) {
   return res;
 }
 
-struct cmd * TDecl(char * name, struct cmd * body) {
+struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_DECL;
   res -> d.DECL.name = name;
+  res -> d.DECL.num_of_ptr = num_of_ptr;
   res -> d.DECL.body = body;
   return res;
 }
@@ -249,9 +251,10 @@ struct var_list * TVNil() {
   return NULL;
 }
 
-struct var_list * TVCons(char * name, struct var_list * next) {
+struct var_list * TVCons(char * name, struct var_list * next, int num_of_ptr) {
   struct var_list * res = new_var_list_ptr();
   res -> name = name;
+  res -> num_of_ptr = num_of_ptr;
   res -> next = next;
   return res;
 }
@@ -276,10 +279,11 @@ struct glob_item * TProcDef(char * name, struct var_list * args,
   return res;
 }
 
-struct glob_item * TGlobVar(char * name) {
+struct glob_item * TGlobVar(char * name, int num_of_ptr) {
   struct glob_item * res = new_glob_item_ptr();
   res -> t = T_GLOB_VAR;
   res -> d.GLOB_VAR.name = name;
+  res -> d.GLOB_VAR.num_of_ptr = num_of_ptr;
   return res;
 }
 
