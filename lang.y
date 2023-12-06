@@ -57,7 +57,7 @@ void * none;
 
 //This is what I added: I delete TM_VAR and add TM_INT / TM_PTR for the type system
 %token <none> TM_INT
-%token <none> TM_PTR
+%token <n> TM_PTR
 
 // Nonterminals
 
@@ -77,7 +77,7 @@ void * none;
 
 
 //This is what I added: I add NT_PTRS to represent multiple TM_PTRS
-%type <e> NT_PTRS
+%type <n> NT_PTRS
 
 // NT_EXPRL is list of expressions used in calling the proc
 // NT_VARL is list of variables used in defining the func and proc
@@ -125,7 +125,8 @@ NT_GLOBALS://similar to E -> F       E -> F , E to create multiple GLOBAL ITEM
 NT_GLOBAL:
   TM_VAR TM_IDENT
   {
-    $$ = (TGlobVar($2));//This function create the global variable
+    $$ = (TGlobVar($2, 0));
+    //This function create the global variable
     //struct glob_item * TGlobVar(char * name);
   }
 | TM_FUNC TM_IDENT TM_LEFT_PAREN NT_VARL TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
@@ -151,12 +152,12 @@ NT_GLOBAL:
 NT_VARL:
   TM_IDENT
   {
-    $$ = (TVCons($1, TVNil()));
+    $$ = (TVCons($1, TVNil(), 0));
     //struct var_list * TVCons(char * name, struct var_list * next);
   }
 | TM_IDENT TM_COMMA NT_VARL
   {
-    $$ = (TVCons($1, $3));
+    $$ = (TVCons($1, $3, 0));
   }
 ;
 
@@ -175,9 +176,13 @@ NT_EXPRL:
 
 //This is what I added:
 NT_PTRS:
-  NT_PTRS TM_PTR
+  TM_PTR
   {
-    $$ = (T);
+    $$ = 1;
+  }
+| NT_PTRS TM_PTR
+  {
+    $$ = $1 + 1;
   }
 //
 
@@ -187,15 +192,15 @@ NT_CMD:
 //TM_INT TM_IDENT or TM_INT NT_PTRS TM__IDENT
   TM_VAR TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
   {
-    $$ = (TDecl($2, $4));
+    $$ = (TDecl($2, $4, 0));
   }
 | TM_INT TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
   {
-    $$ = (TDecl($2, $4));
+    $$ = (TDecl($2, $4, 0));
   }
 | TM_INT NT_PTRS TM_IDENT TM_SEMICOL NT_CMD
   {
-    $$ = (TDeclptrs($3, $5));
+    $$ = (TDecl($3, $5, $2));
   }
 //
 | NT_EXPR TM_ASGNOP NT_EXPR//assignment
@@ -276,7 +281,7 @@ NT_EXPR0:
   }
 | TM_IDENT
   {
-    $$ = (TVar($1));
+    $$ = (TVar($1, 0));
   }
 ;
 
