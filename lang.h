@@ -89,8 +89,6 @@ struct expr {
 /*
 I added DECL_ASGN to represent the command : type V = E
 And I added REF_DECL_ASGN to represent the command : type ref V = v
-Notice that I modified the group member of ASGN because left can only 
-be the name of a variable
 */
 
 struct cmd {
@@ -99,7 +97,7 @@ struct cmd {
     struct {char * name; struct cmd * body; int num_of_ptr; } DECL;
     struct {char * name; struct cmd * body; int num_of_ptr; struct expr * right; } DECL_ASGN;
     struct {char * name; struct cmd * body; int num_of_ptr; char * right; } REF_DECL_ASGN;
-    struct {char * left; struct expr * right; } ASGN;
+    struct {struct expr * left; struct expr * right; } ASGN;
     struct {struct cmd * left; struct cmd * right; } SEQ;
     struct {struct expr * cond; struct cmd * left; struct cmd * right; } IF;
     struct {struct expr * cond; struct cmd * body; } WHILE;
@@ -159,7 +157,7 @@ struct expr * TFunc(char * name, struct expr_list * args);
 struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr);
 struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right);
 struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right);
-struct cmd * TAsgn(char * left, struct expr * right);
+struct cmd * TAsgn(struct expr * left, struct expr * right);
 struct cmd * TSeq(struct cmd * left, struct cmd * right);
 struct cmd * TIf(struct expr * cond, struct cmd * left, struct cmd * right);
 struct cmd * TWhile(struct expr * cond, struct cmd * body);

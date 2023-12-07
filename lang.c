@@ -187,7 +187,7 @@ struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char *
   res -> d.REF_DECL_ASGN.right = right;
 }
 
-struct cmd * TAsgn(char * left, struct expr * right) {
+struct cmd * TAsgn(struct expr * left, struct expr * right) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_ASGN;
   res -> d.ASGN.left = left;
@@ -471,7 +471,7 @@ void print_cmd(struct cmd * c) {
     break;
   case T_ASGN:
     printf("ASGN(");
-    printf("%s", c -> d.ASGN.left);
+    print_expr( c -> d.ASGN.left);
     printf(",");
     print_expr(c -> d.ASGN.right);
     printf(")");
