@@ -4,7 +4,9 @@ We develop this interpreter based on the template of interpreter and frontend co
 
 ##### The rule of the grammar tree: (to be continued) 
 
-E :: = N | V | -E | E + E | E - E | E * E | 
+E :: = 
+
+       N | V | -E | E + E | E - E | E * E | 
 
        E / E | E % E | E < E | E <= E | E == E |
 
@@ -13,7 +15,9 @@ E :: = N | V | -E | E + E | E - E | E * E |
        !E | *E | &E | FUNC_NAME(E, E, ..., E) 
 
 
-C ::  = int V; C |
+C ::  = 
+        
+        int V; C |
 
         int ptr V; C |
 
@@ -42,7 +46,9 @@ C ::  = int V; C |
         continue | break | return
 
 
-GLOB_ITEM :: =  int V |
+GLOB_ITEM :: =  
+        
+                int V |
 
                 int ptr V |
 
@@ -55,4 +61,6 @@ GLOB_ITEM :: =  int V |
                 proc PROC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C }
 
 
-P ::= GLOB_ITEM ; GLOB_ITEM ; ... ; GLOB_ITEM
+P ::= 
+
+        GLOB_ITEM ; GLOB_ITEM ; ... ; GLOB_ITEM
