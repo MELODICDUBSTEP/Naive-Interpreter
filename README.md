@@ -13,6 +13,8 @@ E :: = N | V | -E | E + E | E - E | E * E |
 C ::  = int V; C |
         int ptr V; C |
         int ptr ... ptr V; C |
+        (I call them type V below)
+        type ref V = V; C |
         E = E |
         C; C |
         if (E) then { C } else { C } |
@@ -26,8 +28,9 @@ C ::  = int V; C |
 GLOB_ITEM :: =  int V |
                 int ptr V |
                 int ptr ... ptr V |
-                func FUNC_NAME (V, V, ..., V) { C } |
-                proc PROC_NAME (V, V, ..., V) { C }
+                (I call them type V below)
+                func FUNC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C } |
+                proc PROC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C }
 
 
 P ::= GLOB_ITEM ; GLOB_ITEM ; ... ; GLOB_ITEM

@@ -80,11 +80,10 @@ struct expr * TConst(unsigned int value) {
   return res;
 }
 
-struct expr * TVar(char * name, int num_of_ptr) {
+struct expr * TVar(char * name) {
   struct expr * res = new_expr_ptr();
   res -> t = T_VAR;
   res -> d.VAR.name = name;
-  res -> d.VAR.num_of_ptr = num_of_ptr;
   return res;
 }
 
@@ -169,7 +168,26 @@ struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr) {
   return res;
 }
 
-struct cmd * TAsgn(struct expr * left, struct expr * right) {
+struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right) {
+  struct cmd * res = new_cmd_ptr();
+  res -> t = T_DECL_ASGN;
+  res -> d.DECL_ASGN.name = name;
+  res -> d.DECL_ASGN.num_of_ptr = num_of_ptr;
+  res -> d.DECL_ASGN.body = body;
+  res -> d.DECL_ASGN.right = right;
+}
+
+struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right)
+{
+  struct cmd * res = new_cmd_ptr();
+  res -> t = T_REF_DECL_ASGN;
+  res -> d.REF_DECL_ASGN.name = name;
+  res -> d.REF_DECL_ASGN.body = body;
+  res -> d.REF_DECL_ASGN.num_of_ptr = num_of_ptr;
+  res -> d.REF_DECL_ASGN.right = right;
+}
+
+struct cmd * TAsgn(char * left, struct expr * right) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_ASGN;
   res -> d.ASGN.left = left;
@@ -251,10 +269,11 @@ struct var_list * TVNil() {
   return NULL;
 }
 
-struct var_list * TVCons(char * name, struct var_list * next, int num_of_ptr) {
+struct var_list * TVCons(char * name, struct var_list * next, int num_of_ptr, int is_ref) {
   struct var_list * res = new_var_list_ptr();
   res -> name = name;
   res -> num_of_ptr = num_of_ptr;
+  res -> is_ref = is_ref;
   res -> next = next;
   return res;
 }
@@ -360,12 +379,6 @@ void print_expr(struct expr * e) {
     printf("CONST(%d)", e -> d.CONST.value);
     break;
   case T_VAR:
-    // printf("(INT ");
-    // int num = e -> d.VAR.num_of_ptr;
-    // for(int i = 0; i < num; i++)
-    // {
-    //   printf("PTR ");
-    // }
     printf("%s", e -> d.VAR.name);
     break;
   case T_BINOP:
@@ -429,9 +442,36 @@ void print_cmd(struct cmd * c) {
     print_cmd(c -> d.DECL.body);
     printf(")");
     break;
+  case T_DECL_ASGN:
+    printf("DECL_ASGN(");
+    printf("INT ");
+    int num1 = c -> d.DECL_ASGN.num_of_ptr;
+    for(int i = 0; i < num1; i++)
+    {
+      printf("PTR ");
+    }
+    printf("%s,", c -> d.DECL_ASGN.name);
+    print_expr(c -> d.DECL_ASGN.right);
+    printf(",");
+    print_cmd(c -> d.DECL_ASGN.body);
+    printf(")");
+    break;
+  case T_REF_DECL_ASGN:
+    printf("REF_DECL_ASGN(");
+    printf("INT ");
+    int num2 = c -> d.REF_DECL_ASGN.num_of_ptr;
+    for(int i = 0; i < num2; i++)
+    {
+      printf("PTR ");
+    }
+    printf("REF ");
+    printf("%s,%s,", c -> d.REF_DECL_ASGN.name, c -> d.REF_DECL_ASGN.right);
+    print_cmd(c -> d.REF_DECL_ASGN.body);
+    printf(")");
+    break;
   case T_ASGN:
     printf("ASGN(");
-    print_expr(c -> d.ASGN.left);
+    printf("%s", c -> d.ASGN.left);
     printf(",");
     print_expr(c -> d.ASGN.right);
     printf(")");
@@ -515,6 +555,10 @@ void _print_var_list(struct var_list * vs) {
   {
     printf("PTR ");
   }
+  if(vs -> is_ref == 1)
+  {
+    printf("REF ");
+  }
   printf("%s", vs -> name);
   _print_var_list(vs -> next);
 }
@@ -528,6 +572,10 @@ void print_var_list(struct var_list * vs) {
   for(int i = 0; i < num; i++)
   {
     printf("PTR ");
+  }
+  if(vs -> is_ref == 1)
+  {
+    printf("REF ");
   }
   printf("%s", vs -> name);
   _print_var_list(vs -> next);

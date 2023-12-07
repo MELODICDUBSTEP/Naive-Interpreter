@@ -36,7 +36,7 @@ void * none;
 //
 
 %token <none> TM_MALLOC TM_RI TM_RC TM_WI TM_WC
-%token <none> TM_VAR TM_IF TM_THEN TM_ELSE TM_WHILE TM_DO TM_FOR
+%token <none> TM_INT TM_IF TM_THEN TM_ELSE TM_WHILE TM_DO TM_FOR
 %token <none> TM_ASGNOP
 %token <none> TM_OR
 %token <none> TM_AND
@@ -56,8 +56,8 @@ void * none;
 %token <none> TM_CONT TM_BREAK TM_RET 
 
 //This is what I added: I delete TM_VAR and add TM_INT / TM_PTR for the type system
-%token <none> TM_INT
 %token <n> TM_PTR
+%token <none> TM_REF
 
 // Nonterminals
 
@@ -123,13 +123,7 @@ NT_GLOBALS://similar to E -> F       E -> F , E to create multiple GLOBAL ITEM
 
 
 NT_GLOBAL:
-  TM_VAR TM_IDENT
-  {
-    $$ = (TGlobVar($2, 0));
-    //This function create the global variable
-    //struct glob_item * TGlobVar(char * name);
-  }
-| TM_INT TM_IDENT
+  TM_INT TM_IDENT
   {
     $$ = (TGlobVar($2, 0));
   }
@@ -160,20 +154,35 @@ NT_GLOBAL:
 NT_VARL:
   TM_INT TM_IDENT
   {
-    $$ = (TVCons($2, TVNil(), 0));
+    $$ = (TVCons($2, TVNil(), 0, 0));
   }
 | TM_INT NT_PTRS TM_IDENT
   {
-    $$ = (TVCons($3, TVNil(), $2));
-    //struct var_list * TVCons(char * name, struct var_list * next);
+    $$ = (TVCons($3, TVNil(), $2, 0));
+  }
+| TM_INT TM_REF TM_IDENT
+  {
+    $$ = (TVCons($3, TVNil(), 0, 1));
+  }
+| TM_INT NT_PTRS TM_REF TM_IDENT
+  {
+    $$ = (TVCons($4, TVNil(), $2, 1));
   }
 | TM_INT NT_PTRS TM_IDENT TM_COMMA NT_VARL
   {
-    $$ = (TVCons($3, $5, $2));
+    $$ = (TVCons($3, $5, $2, 0));
+  }
+| TM_INT NT_PTRS TM_REF TM_IDENT TM_COMMA NT_VARL
+  {
+    $$ = (TVCons($4, $6, $2, 1));
   }
 | TM_INT TM_IDENT TM_COMMA NT_VARL
   {
-    $$ = (TVCons($2, $4, 0));
+    $$ = (TVCons($2, $4, 0, 0));
+  }
+| TM_INT TM_REF TM_IDENT TM_COMMA NT_VARL
+  {
+    $$ = (TVCons($3, $5, 0, 1));
   }
 ;
 
@@ -206,20 +215,32 @@ NT_CMD:
  //This is what I modified:
 //Now we can convert a variable declaration command into
 //TM_INT TM_IDENT or TM_INT NT_PTRS TM__IDENT
-  TM_VAR TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
+  TM_INT TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TDecl($2, $4, 0));
   }
-| TM_INT TM_IDENT TM_SEMICOL NT_CMD//declare a variable and the rest command
+| TM_INT TM_IDENT TM_ASGNOP NT_EXPR TM_SEMICOL NT_CMD
   {
-    $$ = (TDecl($2, $4, 0));
-  }
+    $$ = (TDeclAsgn($2, $6, 0, $4));
+  } 
+| TM_INT TM_REF TM_IDENT TM_ASGNOP TM_IDENT TM_SEMICOL NT_CMD
+  {
+    $$ = (TRefDeclAsgn($3, $7, 0, $5));
+  } 
 | TM_INT NT_PTRS TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TDecl($3, $5, $2));
   }
+| TM_INT NT_PTRS TM_IDENT TM_ASGNOP NT_EXPR TM_SEMICOL NT_CMD
+  {
+    $$ = (TDeclAsgn($3, $7, $2, $5));
+  }
+| TM_INT NT_PTRS TM_REF TM_IDENT TM_ASGNOP TM_IDENT TM_SEMICOL NT_CMD
+  {
+    $$ = (TRefDeclAsgn($4, $8, $2, $6));
+  }
 //
-| NT_EXPR TM_ASGNOP NT_EXPR//assignment
+| TM_IDENT TM_ASGNOP NT_EXPR//assignment
   {
     $$ = (TAsgn($1, $3));
   }
@@ -297,7 +318,7 @@ NT_EXPR0:
   }
 | TM_IDENT
   {
-    $$ = (TVar($1, 0));
+    $$ = (TVar($1));
   }
 ;
 

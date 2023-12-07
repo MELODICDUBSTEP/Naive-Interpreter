@@ -1,7 +1,8 @@
 int ptr ptr m;
 
 proc main() {
-  int n;
+  int n = 4 + 1;
+  int ref k = n;
   n = read_int();
   int ptr ptr m;
   m = n + 1;
