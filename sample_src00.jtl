@@ -1,7 +1,9 @@
+int ptr ptr m;
+
 proc main() {
-  var n;
+  int n;
   n = read_int();
-  var m;
+  int ptr ptr m;
   m = n + 1;
   write_int(m + 2)
 }

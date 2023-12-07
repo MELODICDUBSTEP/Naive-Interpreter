@@ -360,7 +360,13 @@ void print_expr(struct expr * e) {
     printf("CONST(%d)", e -> d.CONST.value);
     break;
   case T_VAR:
-    printf("VAR(%s)", e -> d.VAR.name);
+    // printf("(INT ");
+    // int num = e -> d.VAR.num_of_ptr;
+    // for(int i = 0; i < num; i++)
+    // {
+    //   printf("PTR ");
+    // }
+    printf("%s", e -> d.VAR.name);
     break;
   case T_BINOP:
     print_binop(e -> d.BINOP.op);
@@ -391,6 +397,12 @@ void print_expr(struct expr * e) {
     print_expr_list(e -> d.FUNC.args);
     printf(")");
     break;
+  case T_RI:
+    printf("READINT");
+    break;
+  case T_RC:
+    printf("READCHAR");
+    break;
   }
 }
 
@@ -406,7 +418,14 @@ void print_expr_list(struct expr_list * es) {
 void print_cmd(struct cmd * c) {
   switch (c -> t) {
   case T_DECL:
-    printf("DECL(%s,", c -> d.DECL.name);
+    printf("DECL(");
+    printf("INT ");
+    int num = c -> d.DECL.num_of_ptr;
+    for(int i = 0; i < num; i++)
+    {
+      printf("PTR ");
+    }
+    printf("%s,", c -> d.DECL.name);
     print_cmd(c -> d.DECL.body);
     printf(")");
     break;
@@ -472,6 +491,16 @@ void print_cmd(struct cmd * c) {
   case T_RETURN:
     printf("RETURN");
     break;
+  case T_WI:
+    printf("WRITEINT(");
+    print_expr(c -> d.WI.arg);
+    printf(")");
+    break;
+  case T_WC:
+    printf("WRITECHAR(");
+    print_expr(c -> d.WC.arg);
+    printf(")");
+    break;
   }
 }
 
@@ -479,13 +508,26 @@ void _print_var_list(struct var_list * vs) {
   if (vs == NULL) {
     return;
   }
-  printf(",%s", vs -> name);
+  printf(",");
+  printf("INT ");
+  int num = vs -> num_of_ptr;
+  for(int i = 0; i < num; i++)
+  {
+    printf("PTR ");
+  }
+  printf("%s", vs -> name);
   _print_var_list(vs -> next);
 }
 
 void print_var_list(struct var_list * vs) {
   if (vs == NULL) {
     return;
+  }
+  printf("INT ");
+  int num = vs -> num_of_ptr;
+  for(int i = 0; i < num; i++)
+  {
+    printf("PTR ");
   }
   printf("%s", vs -> name);
   _print_var_list(vs -> next);
@@ -508,7 +550,13 @@ void print_glob_item(struct glob_item * g) {
     printf("\n\n");
     return;
   case T_GLOB_VAR:
-    printf("VAR %s\n\n", g -> d.GLOB_VAR.name);
+    printf("INT ");
+    int num = g -> d.GLOB_VAR.num_of_ptr;
+    for(int i = 0; i < num; i++)
+    {
+      printf("PTR ");
+    }
+    printf("%s\n\n", g -> d.GLOB_VAR.name);
     return;
   }
 }

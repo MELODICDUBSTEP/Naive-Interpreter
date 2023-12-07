@@ -1,7 +1,7 @@
 proc main() {
-  var n;
-  var i;
-  var s;
+  int n;
+  int i;
+  int s;
   n = read_int();
   i = 0;
   s = 0;

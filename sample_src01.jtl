@@ -1,6 +1,7 @@
-func test_prime(n) {
-  var i;
-  var flag;
+func test_prime(int n, int ptr m) {
+  int i;
+  int flag;
+  int ptr ptr k;
   i = 2;
   flag = 1;
   while (i * i <= n) do {

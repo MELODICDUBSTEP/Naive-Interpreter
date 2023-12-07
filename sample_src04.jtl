@@ -1,6 +1,6 @@
 proc main() {
-  var s;
-  var n;
+  int s;
+  int n;
   n = 0;
   s = 0;
   do {

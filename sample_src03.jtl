@@ -1,4 +1,4 @@
-func abs(n) {
+func abs(int n, int ptr ptr k) {
   if (n >= 0)
   then {
     __return = n
@@ -7,9 +7,7 @@ func abs(n) {
     __return = - n
   };
   return
-}
-
-;
+};
 
 proc main() {
   write_int(abs(read_int()));
