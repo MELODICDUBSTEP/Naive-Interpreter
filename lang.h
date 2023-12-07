@@ -86,6 +86,13 @@ struct expr {
   } d;
 };
 
+/*
+I added DECL_ASGN to represent the command : type V = E
+And I added REF_DECL_ASGN to represent the command : type ref V = v
+Notice that I modified the group member of ASGN because left can only 
+be the name of a variable
+*/
+
 struct cmd {
   enum CmdType t;
   union {
@@ -107,6 +114,13 @@ struct cmd {
     struct {struct expr * arg; } WC;
   } d;
 };
+
+
+/*Now my variable has three atributes : 
+1.name 
+2. num_of_ptr, to represent how many layers of ptr are there of this variable
+3. is_ref, to represent whether or not this variable is a reference
+*/
 
 struct var_list {
   char * name;

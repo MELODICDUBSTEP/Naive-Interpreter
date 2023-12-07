@@ -22,6 +22,8 @@ parser.o: parser.c parser.h lexer.h lang.h
 lexer.o: lexer.c lexer.h parser.h lang.h
 	gcc -c lexer.c
 
+#Turn off interpreter.c for now 
+
 #interpreter.o: interpreter.c lang.h lib.h
 #	gcc -c interpreter.c
 

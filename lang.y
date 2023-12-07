@@ -1,11 +1,11 @@
 %{
-	// this part is copied to the beginning of the parser 
 	#include <stdio.h>
 	#include "lang.h"
 	#include "lexer.h"
 	void yyerror(char *);
 	int yylex(void);
-  struct glob_item_list * root; // Now the root is a pointer to the global item list
+  struct glob_item_list * root; 
+  // Now the root is a pointer to the global item list
 %}
 
 %union {
@@ -13,14 +13,10 @@ unsigned int n;
 char * i;
 struct expr * e;
 struct cmd * c;
-
-// newly add one: add all the struct defined in lang.h to the union
 struct glob_item * globitem;
 struct var_list * varl;
 struct expr_list * exprl;
 struct glob_item_list * globiteml;
-//
-
 void * none;
 }
 
@@ -50,12 +46,8 @@ void * none;
 %token <none> TM_PLUS TM_MINUS
 %token <none> TM_MUL TM_DIV TM_MOD
 %token <none> TM_UMINUS TM_DEREF
-//func and proc 
 %token <none> TM_PROC TM_FUNC
-//continue and break and return
 %token <none> TM_CONT TM_BREAK TM_RET 
-
-//This is what I added: I delete TM_VAR and add TM_INT / TM_PTR for the type system
 %token <n> TM_PTR
 %token <none> TM_REF
 
@@ -67,16 +59,13 @@ void * none;
 %type <globiteml> NT_WHOLE
 %type <globiteml> NT_GLOBALS
 %type <globitem> NT_GLOBAL
-//
-
 
 %type <c> NT_CMD
 %type <e> NT_EXPR0
 %type <e> NT_EXPR1
 %type <e> NT_EXPR
 
-
-//This is what I added: I add NT_PTRS to represent multiple TM_PTR
+//I added NT_PTRS to represent multiple TM_PTR
 %type <n> NT_PTRS
 
 // NT_EXPRL is list of expressions used in calling the proc
@@ -109,11 +98,10 @@ NT_WHOLE:
 ;
 
 //
-NT_GLOBALS://similar to E -> F       E -> F , E to create multiple GLOBAL ITEM
+NT_GLOBALS:
   NT_GLOBAL
   {
-    $$ = (TGCons($1, TGNil())); // This TGCons function update the global item list
-    //struct glob_item_list * TGCons(struct glob_item * data,  struct glob_item_list * next);
+    $$ = (TGCons($1, TGNil())); 
   }
 | NT_GLOBAL TM_SEMICOL NT_GLOBALS
   {
@@ -133,8 +121,7 @@ NT_GLOBAL:
   }
 | TM_FUNC TM_IDENT TM_LEFT_PAREN NT_VARL TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
   {
-    $$ = (TFuncDef($2, $4, $7));//This function define the free function
-    //struct glob_item * TFuncDef(char * name, struct var_list * args, struct cmd * body);
+    $$ = (TFuncDef($2, $4, $7));
   }
 | TM_FUNC TM_IDENT TM_LEFT_PAREN TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
   {
@@ -142,8 +129,7 @@ NT_GLOBAL:
   }
 | TM_PROC TM_IDENT TM_LEFT_PAREN NT_VARL TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
   {
-    $$ = (TProcDef($2, $4, $7));//This function define the process
-    //struct glob_item * TProcDef(char * name, struct var_list * args, struct cmd * body);
+    $$ = (TProcDef($2, $4, $7));
   }
 | TM_PROC TM_IDENT TM_LEFT_PAREN TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE 
   {
@@ -155,35 +141,35 @@ NT_VARL:
   TM_INT TM_IDENT
   {
     $$ = (TVCons($2, TVNil(), 0, 0));
-  }
+  }// int a
 | TM_INT NT_PTRS TM_IDENT
   {
     $$ = (TVCons($3, TVNil(), $2, 0));
-  }
+  } // int ptr ... ptr a
 | TM_INT TM_REF TM_IDENT
   {
     $$ = (TVCons($3, TVNil(), 0, 1));
-  }
+  } // int ref a
 | TM_INT NT_PTRS TM_REF TM_IDENT
   {
     $$ = (TVCons($4, TVNil(), $2, 1));
-  }
+  } // int ptr ... ptr ref a
 | TM_INT NT_PTRS TM_IDENT TM_COMMA NT_VARL
   {
     $$ = (TVCons($3, $5, $2, 0));
-  }
+  } //int ptr ... ptr a , ... 
 | TM_INT NT_PTRS TM_REF TM_IDENT TM_COMMA NT_VARL
   {
     $$ = (TVCons($4, $6, $2, 1));
-  }
+  } //int ptr ... ptr ref a , ... 
 | TM_INT TM_IDENT TM_COMMA NT_VARL
   {
     $$ = (TVCons($2, $4, 0, 0));
-  }
+  } //int a, ...
 | TM_INT TM_REF TM_IDENT TM_COMMA NT_VARL
   {
     $$ = (TVCons($3, $5, 0, 1));
-  }
+  } // int ref a, ...
 ;
 
 NT_EXPRL:
@@ -194,12 +180,10 @@ NT_EXPRL:
 | NT_EXPR TM_COMMA NT_EXPRL
   {
     $$ = (TECons($1, $3));
-    //struct glob_item_list * TGCons(struct glob_item * data, struct glob_item_list * next);
   }
 ;
 
-
-//This is what I added:
+//Now NT_PTRS will help me store the number of layers(as an integer)
 NT_PTRS:
   TM_PTR
   {
@@ -209,66 +193,59 @@ NT_PTRS:
   {
     $$ = $1 + 1;
   }
-//
 
 NT_CMD:
- //This is what I modified:
-//Now we can convert a variable declaration command into
-//TM_INT TM_IDENT or TM_INT NT_PTRS TM__IDENT
   TM_INT TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TDecl($2, $4, 0));
-  }
+  } //int a; ...
 | TM_INT TM_IDENT TM_ASGNOP NT_EXPR TM_SEMICOL NT_CMD
   {
     $$ = (TDeclAsgn($2, $6, 0, $4));
-  } 
+  } //int a = b; ...
+    //int a = 1; ...
 | TM_INT TM_REF TM_IDENT TM_ASGNOP TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TRefDeclAsgn($3, $7, 0, $5));
-  } 
+  } //int ref a = b; ...
 | TM_INT NT_PTRS TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TDecl($3, $5, $2));
-  }
+  } //int ptr ... ptr a; ...
 | TM_INT NT_PTRS TM_IDENT TM_ASGNOP NT_EXPR TM_SEMICOL NT_CMD
   {
     $$ = (TDeclAsgn($3, $7, $2, $5));
-  }
+  } //int ptr ... ptr a = b; ...
+    //int ptr ... ptr a = 1; ...
 | TM_INT NT_PTRS TM_REF TM_IDENT TM_ASGNOP TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TRefDeclAsgn($4, $8, $2, $6));
-  }
-//
-| TM_IDENT TM_ASGNOP NT_EXPR//assignment
+  } //int ptr ... ptr ref a = b; ...
+| TM_IDENT TM_ASGNOP NT_EXPR
   {
     $$ = (TAsgn($1, $3));
-  }
+  } //a = b
+    //a = 1
 | NT_CMD TM_SEMICOL NT_CMD//sequential sentences
   {
     $$ = (TSeq($1, $3));
-  }
+  } //C;C
 | TM_IF TM_LEFT_PAREN NT_EXPR TM_RIGHT_PAREN TM_THEN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE TM_ELSE TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE
-  { // if sentence including a condition expression and two commands
+  { 
     $$ = (TIf($3, $7, $11));
   }
 | TM_WHILE TM_LEFT_PAREN NT_EXPR TM_RIGHT_PAREN TM_DO TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE
-  {// while sentence
+  {
     $$ = (TWhile($3, $7)); 
   }
-//This is special : for 
-//struct cmd * TFor(struct cmd * init, struct expr * cond, struct cmd * incr, struct cmd * body);
 | TM_FOR TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE TM_LEFT_PAREN NT_EXPR TM_RIGHT_PAREN TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE
   {
     $$ = (TFor($3, $6, $9, $12));
   }
-//This is special: do while
-//struct cmd * TDoWhile(struct cmd * body, struct expr * cond);
 | TM_DO TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE TM_WHILE TM_LEFT_PAREN NT_EXPR TM_RIGHT_PAREN
   {
     $$ = (TDoWhile($3, $7));
   }
-// continue break and return
 | TM_CONT
   {
     $$ = (TContinue());
@@ -286,11 +263,6 @@ NT_CMD:
   {
     $$ = (TProc($1, $3));
   }
-/* struct cmd * TProc(char * name, struct expr_list * args);
-struct cmd * TBreak();
-struct cmd * TContinue();
-struct cmd * TReturn(); */
-
 // take the one with no paramater as a special case
 | TM_IDENT TM_LEFT_PAREN TM_RIGHT_PAREN
   {
@@ -410,7 +382,6 @@ NT_EXPR:
 | TM_IDENT TM_LEFT_PAREN NT_EXPRL TM_RIGHT_PAREN
   {
     $$ = (TFunc($1, $3));
-    //struct expr * TFunc(char * name, struct expr_list * args);
   }
 | TM_IDENT TM_LEFT_PAREN TM_RIGHT_PAREN
   {
