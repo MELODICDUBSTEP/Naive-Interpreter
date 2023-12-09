@@ -22,16 +22,14 @@ parser.o: parser.c parser.h lexer.h lang.h
 lexer.o: lexer.c lexer.h parser.h lang.h
 	gcc -c lexer.c
 
-#Turn off interpreter.c for now 
+interpreter.o: interpreter.c lang.h lib.h
+	gcc -c interpreter.c
 
-#interpreter.o: interpreter.c lang.h lib.h
-#	gcc -c interpreter.c
-
-#main.o: main.c lexer.h parser.h lang.h
+main.o: main.c lexer.h parser.h lang.h
 	gcc -c main.c
 
-#main: lang.o parser.o lexer.o interpreter.o lib.o main.o
-	gcc lang.o parser.o lexer.o interpreter.o lib.o main.o -o main
+main: lang.o parser.o lexer.o interpreter.o lib.o main.o
+	gcc -g -OO lang.o parser.o lexer.o interpreter.o lib.o main.o -o main
 
 main1.o: main1.c lexer.h parser.h lang.h
 	gcc -c main1.c
@@ -39,8 +37,8 @@ main1.o: main1.c lexer.h parser.h lang.h
 main1: lang.o parser.o lexer.o interpreter.o lib.o main1.o
 	gcc lang.o parser.o lexer.o interpreter.o lib.o main1.o -o main1
 
-#all: main
-all: main1
+all: main
+#all: main1
 
 clean:
 	rm -f lexer.h lexer.c parser.h parser.c *.o main
