@@ -1,9 +1,16 @@
 int ptr ptr m;
 
 proc main() {
-  int n;
-  n = read_int();
-  m = 3;
-  m = n + 1;
-  write_int(m + 2)
+  int n = read_int();
+  write_int(n);
+  write_char(10);
+  int ptr s = &n;
+  *s = 4;
+  s = &m;
+  *s = 9;
+  write_int(n);
+  write_char(10);
+  write_int(m);
+  write_char(10);
+  write_int(s)
 }

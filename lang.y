@@ -81,7 +81,7 @@ void * none;
 %left TM_LT TM_LE TM_GT TM_GE TM_EQ TM_NE // > < 
 %left TM_PLUS TM_MINUS // + -
 %left TM_MUL TM_DIV TM_MOD // * /  %
-%right TM_UMINUS TM_DEREF TM_ADDR// - *
+%right TM_UMINUS TM_DEREF TM_ADDR// - * & 
 %left TM_NOT // !
 %left TM_LEFT_PAREN TM_RIGHT_PAREN //( )
 %right TM_COMMA

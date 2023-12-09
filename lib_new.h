@@ -14,16 +14,36 @@ enum class func_proc_info_type
 class variable_info
 {
 public:
-    variable_info(){};
-    variable_info(int num2) : value(0), num_of_ptr(num2), is_ref(0) {}
-    variable_info(long long num1, int num2, int num3) : value(num1), num_of_ptr(num2), is_ref(num3) {}
-    long long value;
+    variable_info()
+    {
+        location = cnt;
+        cnt++;
+    }
+    variable_info(int num2) : num_of_ptr(num2), is_ref(0)
+    {
+        location = cnt;
+        cnt++;
+    }
+    variable_info(int num2, int num3) : num_of_ptr(num2), is_ref(num3)
+    {
+        location = cnt;
+        cnt++;
+    }
+    variable_info(const variable_info & other)
+    {
+        if(this == &other)
+        {
+            return;
+        }
+        num_of_ptr = other.num_of_ptr;
+        is_ref = other.is_ref;
+        location = other.location;
+    }
     int num_of_ptr;
     int is_ref;
     long long location;
 
     static long long cnt;
-
 };
 
 class func_proc_info

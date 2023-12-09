@@ -11,9 +11,14 @@
 //I rewrite this .c file to be .cpp file to make it more readable and 
 //easy to debug and convenient to implement
 
+long long variable_info::cnt = 0;
+
+std::unordered_map<long long, long long> loc_val;
+//a hash table ampping location and value
+
 std::unordered_map<std::string, func_proc_info> func_proc_table;
 std::stack<std::unordered_map<std::string, variable_info>> var_stack;
-//a hash table mapping the variable name to the value and the ptr count
+//a hash table mapping the variable name to the value, the ptr count and the location
 
 //I have to have a mark to show that whether the first command in evalution context is 
 //sequential or in loop
@@ -77,8 +82,12 @@ res_prog * init_res_prog(struct glob_item_list * globlist)
     {
     case T_GLOB_VAR:
     {
+      loc_val[variable_info::cnt] = 0;
       variable_info new_var_info(p -> data -> d.GLOB_VAR.num_of_ptr);
+      //std::cout << "cnt right now " << variable_info::cnt << std::endl;
       glob_var_state[(std::string)p -> data -> d.GLOB_VAR.name] = new_var_info;
+      variable_info::cnt--;
+      //std::cout << "cnt right now " << variable_info::cnt << std::endl;
       break;
     }
     case T_FUNC_DEF:
@@ -116,7 +125,7 @@ long long eval(struct expr * e)
     return (long long) e -> d.CONST.value;
     
   case T_VAR:
-    return var_stack.top()[e -> d.VAR.name].value;
+    return loc_val[var_stack.top()[e -> d.VAR.name].location];
 
   case T_BINOP:
     if (e -> d.BINOP.op == T_AND) {
@@ -172,8 +181,15 @@ long long eval(struct expr * e)
     else {
       return - eval(e -> d.UNOP.arg);
     }
+
   case T_DEREF:
-    return * (long long *) eval(e -> d.DEREF.arg);
+    return loc_val[eval(e -> d.DEREF.arg)];
+
+  case T_ADDR_OF:
+  {
+    return var_stack.top()[e -> d.ADDR_OF.arg -> d.VAR.name].location;
+  }
+
   case T_MALLOC: {
     long long arg_val = eval(e -> d.MALLOC.arg);
     if (arg_val % 8 != 0) {
@@ -181,6 +197,7 @@ long long eval(struct expr * e)
     }
     return (long long) malloc(arg_val);
   }
+
   case T_RI: {
     long long res;
     std::cin >> res;
@@ -211,8 +228,10 @@ void step(res_prog * r)
     //declaration
     case T_DECL:
     {
+        loc_val[variable_info::cnt] = 0;
         variable_info decl(c -> d.DECL.num_of_ptr);
         var_stack.top()[c -> d.DECL.name] = decl;
+        variable_info::cnt--;
         r -> foc = c -> d.DECL.body;
         break;
     }
@@ -220,15 +239,14 @@ void step(res_prog * r)
       switch (c -> d.ASGN.left -> t) {
       case T_VAR: {
         long long rhs = eval(c -> d.ASGN.right);
-        var_stack.top()[c -> d.ASGN.left -> d.VAR.name].value = rhs;
+        loc_val[var_stack.top()[c -> d.ASGN.left -> d.VAR.name].location] = rhs;
         r -> foc = NULL;
         break;
       }
-
-      case T_DEREF: { 
-        long long * lhs = (long long *) eval(c -> d.ASGN.left -> d.DEREF.arg);
+    case T_DEREF: { 
+        long long lhs = eval(c -> d.ASGN.left -> d.DEREF.arg);
         long long rhs = eval(c -> d.ASGN.right);
-        * lhs = rhs;
+        loc_val[lhs] = rhs;
         r -> foc = NULL;
         break;
       }
@@ -237,6 +255,23 @@ void step(res_prog * r)
         exit(0);
       }
       break;
+
+    case T_DECL_ASGN:
+    {
+      variable_info decl(c -> d.DECL_ASGN.num_of_ptr);
+      var_stack.top()[c -> d.DECL_ASGN.name] = decl;
+      variable_info::cnt--;
+      long long rhs = eval(c -> d.DECL_ASGN.right);
+      loc_val[var_stack.top()[c -> d.DECL_ASGN.name].location] = rhs;
+      r -> foc = c -> d.DECL_ASGN.body;
+      break;
+    }
+
+    case T_REF_DECL_ASGN:
+    {
+      
+      break;
+    }
 
     case T_SEQ:
       r -> foc = c -> d.SEQ.left;
@@ -297,7 +332,6 @@ void step(res_prog * r)
       //Just like what "continue" command do
     }
     case T_WI: {
-      //std::cout << "WIWI" << std::endl;
       long long rhs = eval(c -> d.WI.arg);
       std::cout << rhs;
       r -> foc = NULL;
@@ -321,6 +355,18 @@ int test_end(res_prog * r) {
   }
   else {
     //std::cout << 0 << std::endl;
+    // if(var_stack.top().count("n") == 1)
+    // {
+    //   std::cout << "the location for n is " << var_stack.top()["n"].location << std::endl;
+    // }
+    // if(var_stack.top().count("m") == 1)
+    // {
+    //   std::cout << "the location for m is " << var_stack.top()["m"].location << std::endl;
+    // }
+    // if(var_stack.top().count("s") == 1)
+    // {
+    //   std::cout << "the location for s is " << var_stack.top()["s"].location << std::endl;
+    // }
     return 0;
   }
 }//if the focused program and the evaluation context are all empty then we end the program
