@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include "lang.h"
 #include "interpreter.h"
+#include "lib.h"
+
+struct FSLL_hash_table * func_proc_list;
+Stack * var_stack;
+
 
 //I have to have a mark to show that whether the first command in evalution context is 
 //sequential or in loop
@@ -28,9 +33,6 @@ struct res_prog
   struct cont_list * ectx;
 };
 //residual program consists of two part: focused program and evalution context
-
-struct SLL_hash_table * var_state;
-//a hash table mapping the variable name to the value
 
 struct res_prog * new_res_prog_ptr() 
 {
@@ -79,15 +81,59 @@ struct cont_list * CL_Cons(struct cmd * c, struct cont_list * l, enum Type type)
 //function to create the continuation list: Cons
 //modify the cons function to make it compatible with type
 
-struct res_prog * init_res_prog(struct cmd * c) 
+struct res_prog * init_res_prog(struct glob_item_list * globlist) 
 {
   struct res_prog * res = new_res_prog_ptr();
-  res -> foc = c;
-  res -> ectx = CL_Nil();
-  var_state = init_SLL_hash();
-  return res;
-}//a function to initialize the residual program
+  struct SLL_hash_table * glob_var_state = init_SLL_hash();
+  var_stack = init_stack();
+  func_proc_list = Finit_SLL_hash();
+  //initializing
+  
+  struct glob_item_list * p = globlist;
+  while(p != NULL)
+  {
+    switch (p -> data -> t)
+    {
+    case T_GLOB_VAR:
+    {
+      variable_info * new_var_info = init_variable_info();
+      new_var_info -> value = 0;
+      new_var_info -> num_of_ptr = p -> data -> d.GLOB_VAR.num_of_ptr; 
+      new_var_info -> is_ref = 0;
+      SLL_hash_set(glob_var_state, p -> data -> d.GLOB_VAR.name, new_var_info);
+      break;
+    }
+    case T_FUNC_DEF:
+      
+      break;
+    case T_PROC_DEF:
+      
+      break;
+    default:
+      break;
+    }
+    p = p -> next;
+  }
 
+  push(var_stack, glob_var_state);
+
+  //FOR DEBUGING
+  struct SLL_hash_table * top = peek(var_stack);
+  variable_info * top_var_a = SLL_hash_get(top, "a");
+  variable_info * top_var_b = SLL_hash_get(top, "b");
+  variable_info * top_var_c = SLL_hash_get(top, "c");
+  printf("%lld %d %d \n", top_var_a -> value, top_var_a -> num_of_ptr, top_var_a -> is_ref);
+  printf("%lld %d %d \n", top_var_b -> value, top_var_b -> num_of_ptr, top_var_b -> is_ref);
+  printf("%lld %d %d \n", top_var_c -> value, top_var_c -> num_of_ptr, top_var_c -> is_ref);
+  //
+
+  // res -> foc = c;
+  // res -> ectx = CL_Nil();
+  
+  return res;
+}
+
+/*
 long long eval(struct expr * e) 
 {
   switch (e -> t) {
@@ -293,3 +339,6 @@ int test_end(struct res_prog * r) {
     return 0;
   }
 }//if the focused program and the evaluation context are all empty then we end the program
+
+
+*/
