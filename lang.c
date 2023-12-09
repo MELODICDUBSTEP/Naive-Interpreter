@@ -175,6 +175,7 @@ struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct ex
   res -> d.DECL_ASGN.num_of_ptr = num_of_ptr;
   res -> d.DECL_ASGN.body = body;
   res -> d.DECL_ASGN.right = right;
+  return res;
 }
 
 struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right)
@@ -185,6 +186,7 @@ struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char *
   res -> d.REF_DECL_ASGN.body = body;
   res -> d.REF_DECL_ASGN.num_of_ptr = num_of_ptr;
   res -> d.REF_DECL_ASGN.right = right;
+  return res;
 }
 
 struct cmd * TAsgn(struct expr * left, struct expr * right) {
@@ -429,11 +431,12 @@ void print_expr_list(struct expr_list * es) {
 }
 
 void print_cmd(struct cmd * c) {
+  int num, num1, num2;
   switch (c -> t) {
   case T_DECL:
     printf("DECL(");
     printf("INT ");
-    int num = c -> d.DECL.num_of_ptr;
+    num = c -> d.DECL.num_of_ptr;
     for(int i = 0; i < num; i++)
     {
       printf("PTR ");
@@ -445,7 +448,7 @@ void print_cmd(struct cmd * c) {
   case T_DECL_ASGN:
     printf("DECL_ASGN(");
     printf("INT ");
-    int num1 = c -> d.DECL_ASGN.num_of_ptr;
+    num1 = c -> d.DECL_ASGN.num_of_ptr;
     for(int i = 0; i < num1; i++)
     {
       printf("PTR ");
@@ -459,7 +462,7 @@ void print_cmd(struct cmd * c) {
   case T_REF_DECL_ASGN:
     printf("REF_DECL_ASGN(");
     printf("INT ");
-    int num2 = c -> d.REF_DECL_ASGN.num_of_ptr;
+    num2 = c -> d.REF_DECL_ASGN.num_of_ptr;
     for(int i = 0; i < num2; i++)
     {
       printf("PTR ");

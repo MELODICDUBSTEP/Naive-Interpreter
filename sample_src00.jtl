@@ -1,10 +1,9 @@
 int ptr ptr m;
 
 proc main() {
-  int n = 4 + 1;
-  int ref k = n;
+  int n;
   n = read_int();
-  int ptr ptr m;
+  m = 3;
   m = n + 1;
   write_int(m + 2)
 }

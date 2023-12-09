@@ -4,7 +4,7 @@
 #include "parser.h"
 #include "interpreter.h"
 
-extern struct cmd * root;
+extern struct glob_item_list * root;
 int yyparse();
 
 int main(int argc, char * * argv) {
@@ -23,6 +23,7 @@ int main(int argc, char * * argv) {
   }
   yyparse();
   fclose(yyin);
+
   struct res_prog * r = init_res_prog(root);
   while (! test_end(r)) {
     step(r);

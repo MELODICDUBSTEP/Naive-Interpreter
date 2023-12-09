@@ -1,21 +1,23 @@
-#include <stdlib.h>
 #include "lang.h"
 #include "interpreter.h"
+#include "lib_new.h"
 #include <unordered_map>
 #include <memory>
 #include <list>
 #include <string>
-
+#include <iostream>
+#include <stack>
 
 //I rewrite this .c file to be .cpp file to make it more readable and 
 //easy to debug and convenient to implement
 
-
-std::unordered_map<std::string, long long> var_state;
+std::unordered_map<std::string, func_proc_info> func_proc_table;
+std::stack<std::unordered_map<std::string, variable_info>> var_stack;
 //a hash table mapping the variable name to the value and the ptr count
 
 //I have to have a mark to show that whether the first command in evalution context is 
 //sequential or in loop
+
 enum class Type 
 {
   Seq, WhileBody
@@ -63,23 +65,58 @@ void ConList_pop_front(std::list< std::shared_ptr<cont> > & cont_l)
   cont_l.pop_front();
 }
 
-res_prog * init_res_prog(struct cmd * c) 
+res_prog * init_res_prog(struct glob_item_list * globlist) 
 {
   res_prog * res = new res_prog;
-  res -> foc = c;
+  std::unordered_map<std::string, variable_info> glob_var_state;
+  //Now I go through the globlist to make global variable list and func_proc list
+  struct glob_item_list * p = globlist;
+  while(p != NULL)
+  {
+    switch (p -> data -> t)
+    {
+    case T_GLOB_VAR:
+    {
+      variable_info new_var_info(p -> data -> d.GLOB_VAR.num_of_ptr);
+      glob_var_state[(std::string)p -> data -> d.GLOB_VAR.name] = new_var_info;
+      break;
+    }
+    case T_FUNC_DEF:
+    {
+      func_proc_info new_func_info(p -> data -> d.FUNC_DEF.args, p -> data -> d.FUNC_DEF.body, func_proc_info_type::func);
+      func_proc_table[(std::string)p -> data -> d.FUNC_DEF.name] = new_func_info;
+      break;
+    }
+    case T_PROC_DEF:
+    {
+      func_proc_info new_proc_info(p -> data -> d.PROC_DEF.args, p -> data -> d.PROC_DEF.body, func_proc_info_type::proc);
+      func_proc_table[(std::string)p -> data -> d.PROC_DEF.name] = new_proc_info;
+      break;
+    }
+    default:
+      break;
+    }
+    p = p -> next;
+  }
+  var_stack.push(glob_var_state);
+  //Now I have a hashtable for all the function and process definition
+  //And a stack representing the global variable
+
+  auto entrance = func_proc_table["main"];
+  res -> foc = entrance.body;
+  //Find the main function and jump into it
   return res;
-}//a function to initialize the residual program
+}
+
 
 long long eval(struct expr * e) 
 {
   switch (e -> t) {
   case T_CONST:
     return (long long) e -> d.CONST.value;
-
     
   case T_VAR:
-    return var_state[e -> d.VAR.name];
-
+    return var_stack.top()[e -> d.VAR.name].value;
 
   case T_BINOP:
     if (e -> d.BINOP.op == T_AND) {
@@ -146,12 +183,12 @@ long long eval(struct expr * e)
   }
   case T_RI: {
     long long res;
-    scanf("%lld", & res);
+    std::cin >> res;
     return res;
   }
   case T_RC: {
     char res;
-    scanf("%c", & res);
+    std::cin >> res;
     return (long long) res;
   }
   }
@@ -162,28 +199,29 @@ void step(res_prog * r)
 {
   if (r -> foc == NULL) 
   {
-      std::list< std::shared_ptr<cont> > cl = r -> ectx;
-      std::shared_ptr<cont> k = cl.front();
-      cl.pop_front();
+      std::shared_ptr<cont> k = r -> ectx.front();
+      r -> ectx.pop_front();
       r -> foc = k -> c;
   }
   //if the focused program is null we take the first continuation in 
   //cont_list as focused program and let the rest be evaluaton context
   else {
     struct cmd * c = r -> foc;
-
     switch (c -> t) {
-
+    //declaration
     case T_DECL:
-        r -> foc = NULL;
+    {
+        variable_info decl(c -> d.DECL.num_of_ptr);
+        var_stack.top()[c -> d.DECL.name] = decl;
+        r -> foc = c -> d.DECL.body;
         break;
-
+    }
     case T_ASGN:
       switch (c -> d.ASGN.left -> t) {
       case T_VAR: {
         long long rhs = eval(c -> d.ASGN.right);
-        var_state[c -> d.ASGN.left -> d.VAR.name] = rhs;
-        
+        var_stack.top()[c -> d.ASGN.left -> d.VAR.name].value = rhs;
+        r -> foc = NULL;
         break;
       }
 
@@ -191,13 +229,13 @@ void step(res_prog * r)
         long long * lhs = (long long *) eval(c -> d.ASGN.left -> d.DEREF.arg);
         long long rhs = eval(c -> d.ASGN.right);
         * lhs = rhs;
+        r -> foc = NULL;
         break;
       }
       default:
         printf("error!\n");
         exit(0);
       }
-      r -> foc = NULL;
       break;
 
     case T_SEQ:
@@ -226,15 +264,14 @@ void step(res_prog * r)
 
     case T_BREAK: 
     {
-      std::list<std::shared_ptr<cont> > cl = r -> ectx;
-      if(cl.front() -> type == Type::Seq)
+      if(r -> ectx.front() -> type == Type::Seq)
       {
-        cl.pop_front();
+        r -> ectx.pop_front();
       }//right now the type of evalution context is Seq
       else
       {
         r -> foc = NULL;
-        cl.pop_front();
+        r -> ectx.pop_front();
       }
       // If the type is WhileBody
       // we clear the focused program and let the rest to be evaluation context
@@ -243,17 +280,16 @@ void step(res_prog * r)
 
     case T_CONTINUE:
     {
-      std::list<std::shared_ptr<cont> > cl = r -> ectx;
-      if(cl.front() -> type == Type::Seq)
+      if(r -> ectx.front() -> type == Type::Seq)
       {
-        cl.pop_front();
+        r -> ectx.pop_front();
       }
       //right now the type of evalution context is Seq
     
       else
       {
-        r -> foc = cl.front() -> c;
-        cl.pop_front();
+        r -> foc = r -> ectx.front() -> c;
+        r -> ectx.pop_front();
       }
       break;
       //If the type is WhileBody
@@ -261,14 +297,15 @@ void step(res_prog * r)
       //Just like what "continue" command do
     }
     case T_WI: {
+      //std::cout << "WIWI" << std::endl;
       long long rhs = eval(c -> d.WI.arg);
-      printf("%lld", rhs);
+      std::cout << rhs;
       r -> foc = NULL;
       break;
     }
     case T_WC: {
       char rhs = (char) eval(c -> d.WC.arg);
-      printf("%c", rhs);
+      std::cout << rhs;
       r -> foc = NULL;
       break;
     }
@@ -276,11 +313,14 @@ void step(res_prog * r)
   }
 }
 
-int test_end(struct res_prog * r) {
-  if (r -> foc == NULL && r -> ectx.empty()) {
+int test_end(res_prog * r) {
+  if (r -> foc == NULL && r -> ectx.empty()) 
+  {
+    //std::cout << 1 << std::endl;
     return 1;
   }
   else {
+    //std::cout << 0 << std::endl;
     return 0;
   }
 }//if the focused program and the evaluation context are all empty then we end the program

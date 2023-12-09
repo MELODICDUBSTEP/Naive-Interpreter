@@ -6,6 +6,7 @@
 
 #define MAX_SIZE 2048
 
+
 variable_info * init_variable_info()
 {
   return (variable_info *)malloc(sizeof(variable_info));

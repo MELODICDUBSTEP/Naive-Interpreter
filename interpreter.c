@@ -88,7 +88,7 @@ struct res_prog * init_res_prog(struct glob_item_list * globlist)
   var_stack = init_stack();
   func_proc_list = Finit_SLL_hash();
   //initializing
-  
+
   struct glob_item_list * p = globlist;
   while(p != NULL)
   {
@@ -114,7 +114,7 @@ struct res_prog * init_res_prog(struct glob_item_list * globlist)
     }
     p = p -> next;
   }
-
+  
   push(var_stack, glob_var_state);
 
   //FOR DEBUGING

@@ -10,32 +10,32 @@ parser.c: lang.y
 parser.h: lang.y
 	bison -o parser.c -d -v lang.y
 
-lib.o: lib.c lib.h
-	gcc -c lib.c
+lib_new.o: lib_new.c lib_new.h
+	g++ -c lib_new.c
 
-lang.o: lang.c lang.h lib.h
-	gcc -c lang.c
+lang.o: lang.c lang.h lib_new.h
+	g++ -c lang.c
 
 parser.o: parser.c parser.h lexer.h lang.h
-	gcc -c parser.c
+	g++ -c parser.c
 
 lexer.o: lexer.c lexer.h parser.h lang.h
-	gcc -c lexer.c
+	g++ -c lexer.c
 
-interpreter.o: interpreter.c lang.h lib.h
-	gcc -c interpreter.c
+interpreter.o: interpreter.cpp lang.h lib_new.h
+	g++ -c interpreter.cpp
 
 main.o: main.c lexer.h parser.h lang.h
-	gcc -c main.c
+	g++ -c main.c
 
-main: lang.o parser.o lexer.o interpreter.o lib.o main.o
-	gcc -g -OO lang.o parser.o lexer.o interpreter.o lib.o main.o -o main
+main: lang.o parser.o lexer.o interpreter.o lib_new.o main.o
+	g++ -g -OO lang.o parser.o lexer.o interpreter.o lib_new.o main.o -o main
 
 main1.o: main1.c lexer.h parser.h lang.h
-	gcc -c main1.c
+	g++ -c main1.c
 
-main1: lang.o parser.o lexer.o interpreter.o lib.o main1.o
-	gcc lang.o parser.o lexer.o interpreter.o lib.o main1.o -o main1
+main1: lang.o parser.o lexer.o interpreter.o lib_new.o main1.o
+	g++ lang.o parser.o lexer.o interpreter.o lib_new.o main1.o -o main1
 
 all: main
 #all: main1

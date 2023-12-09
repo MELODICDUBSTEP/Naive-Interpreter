@@ -221,7 +221,7 @@ NT_CMD:
   {
     $$ = (TRefDeclAsgn($4, $8, $2, $6));
   } //int ptr ... ptr ref a = b; ...
-| TM_IDENT TM_ASGNOP NT_EXPR
+| NT_EXPR TM_ASGNOP NT_EXPR
   {
     $$ = (TAsgn($1, $3));
   } //a = b

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "lib.h"
+#include "lib_new.h"
 
 enum BinOpType {
   T_PLUS,
