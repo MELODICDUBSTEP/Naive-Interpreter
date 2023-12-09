@@ -12,5 +12,18 @@ proc main() {
   write_char(10);
   write_int(m);
   write_char(10);
-  write_int(s)
+  write_int(s);
+  write_char(10);
+  int ref a = n;
+  int ptr ptr ref b = m;
+  a = 100;
+  b = 900;
+  write_int(a);
+  write_char(10);
+  write_int(n);
+  write_char(10);
+  write_int(b); 
+  write_char(10);
+  write_int(m);
+  write_char(10)
 }

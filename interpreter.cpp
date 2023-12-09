@@ -6,7 +6,7 @@
 #include <list>
 #include <string>
 #include <iostream>
-#include <stack>
+#include <vector>
 
 //I rewrite this .c file to be .cpp file to make it more readable and 
 //easy to debug and convenient to implement
@@ -17,8 +17,21 @@ std::unordered_map<long long, long long> loc_val;
 //a hash table ampping location and value
 
 std::unordered_map<std::string, func_proc_info> func_proc_table;
-std::stack<std::unordered_map<std::string, variable_info>> var_stack;
+std::vector<std::unordered_map<std::string, variable_info>> var_vector;
 //a hash table mapping the variable name to the value, the ptr count and the location
+
+variable_info & search_var(std::string name)
+{
+  for(int i = var_vector.size() - 1; i >= 0; i--)
+  {
+    if(var_vector[i].count(name) == 1)
+    {
+      return var_vector[i][name];
+    }
+  }
+  std::cout << "There's no variable named " << name << std::endl;
+  return var_vector[0][name];
+}
 
 //I have to have a mark to show that whether the first command in evalution context is 
 //sequential or in loop
@@ -107,7 +120,7 @@ res_prog * init_res_prog(struct glob_item_list * globlist)
     }
     p = p -> next;
   }
-  var_stack.push(glob_var_state);
+  var_vector.push_back(glob_var_state);
   //Now I have a hashtable for all the function and process definition
   //And a stack representing the global variable
 
@@ -125,7 +138,7 @@ long long eval(struct expr * e)
     return (long long) e -> d.CONST.value;
     
   case T_VAR:
-    return loc_val[var_stack.top()[e -> d.VAR.name].location];
+    return loc_val[search_var(e -> d.VAR.name).location];
 
   case T_BINOP:
     if (e -> d.BINOP.op == T_AND) {
@@ -187,7 +200,7 @@ long long eval(struct expr * e)
 
   case T_ADDR_OF:
   {
-    return var_stack.top()[e -> d.ADDR_OF.arg -> d.VAR.name].location;
+    return search_var(e -> d.ADDR_OF.arg -> d.VAR.name).location;
   }
 
   case T_MALLOC: {
@@ -230,7 +243,7 @@ void step(res_prog * r)
     {
         loc_val[variable_info::cnt] = 0;
         variable_info decl(c -> d.DECL.num_of_ptr);
-        var_stack.top()[c -> d.DECL.name] = decl;
+        var_vector[var_vector.size() - 1][c -> d.DECL.name] = decl;
         variable_info::cnt--;
         r -> foc = c -> d.DECL.body;
         break;
@@ -239,7 +252,7 @@ void step(res_prog * r)
       switch (c -> d.ASGN.left -> t) {
       case T_VAR: {
         long long rhs = eval(c -> d.ASGN.right);
-        loc_val[var_stack.top()[c -> d.ASGN.left -> d.VAR.name].location] = rhs;
+        loc_val[search_var(c -> d.ASGN.left -> d.VAR.name).location] = rhs;
         r -> foc = NULL;
         break;
       }
@@ -259,17 +272,21 @@ void step(res_prog * r)
     case T_DECL_ASGN:
     {
       variable_info decl(c -> d.DECL_ASGN.num_of_ptr);
-      var_stack.top()[c -> d.DECL_ASGN.name] = decl;
+      var_vector[var_vector.size() - 1][c -> d.DECL_ASGN.name] = decl;
       variable_info::cnt--;
       long long rhs = eval(c -> d.DECL_ASGN.right);
-      loc_val[var_stack.top()[c -> d.DECL_ASGN.name].location] = rhs;
+      loc_val[search_var(c -> d.DECL_ASGN.name).location] = rhs;
       r -> foc = c -> d.DECL_ASGN.body;
       break;
     }
 
     case T_REF_DECL_ASGN:
     {
-      
+      variable_info decl(c -> d.REF_DECL_ASGN.num_of_ptr);
+      decl.location = search_var(c -> d.REF_DECL_ASGN.right).location;
+      var_vector[var_vector.size() - 1][c -> d.REF_DECL_ASGN.name] = decl;
+      variable_info::cnt--;
+      r -> foc = c -> d.DECL_ASGN.body;
       break;
     }
 
@@ -355,17 +372,17 @@ int test_end(res_prog * r) {
   }
   else {
     //std::cout << 0 << std::endl;
-    // if(var_stack.top().count("n") == 1)
+    // if(var_vector[var_vector.size() - 1].count("n") == 1)
     // {
-    //   std::cout << "the location for n is " << var_stack.top()["n"].location << std::endl;
+    //   std::cout << "the location for n is " << var_vector[var_vector.size() - 1]["n"].location << std::endl;
     // }
-    // if(var_stack.top().count("m") == 1)
+    // if(var_vector[var_vector.size() - 1].count("m") == 1)
     // {
-    //   std::cout << "the location for m is " << var_stack.top()["m"].location << std::endl;
+    //   std::cout << "the location for m is " << var_vector[var_vector.size() - 1]["m"].location << std::endl;
     // }
-    // if(var_stack.top().count("s") == 1)
+    // if(var_vector[var_vector.size() - 1].count("s") == 1)
     // {
-    //   std::cout << "the location for s is " << var_stack.top()["s"].location << std::endl;
+    //   std::cout << "the location for s is " << var_vector[var_vector.size() - 1]["s"].location << std::endl;
     // }
     return 0;
   }
