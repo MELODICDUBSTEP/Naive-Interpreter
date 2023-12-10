@@ -50,11 +50,13 @@ enum CmdType {
   T_FOR,
   T_DO_WHILE,
   T_PROC,
+  T_END_PROC,
   T_WI,
   T_WC,
   T_BREAK,
   T_CONTINUE,
-  T_RETURN
+  T_RETURN,
+  T_CLEAR
 };
 
 enum GlobItemType {
@@ -105,6 +107,7 @@ struct cmd {
             struct cmd * incr; struct cmd * body; } FOR;
     struct {struct cmd * body; struct expr * cond; } DO_WHILE;
     struct {char * name; struct expr_list * args; } PROC;
+    int END_PROC;
     struct {void * none; } BREAK;
     struct {void * none; } CONTINUE;
     struct {void * none; } RETURN;
@@ -182,6 +185,7 @@ struct glob_item_list * TGCons(struct glob_item * data,
 struct cmd * TWriteInt(struct expr * arg);
 struct cmd * TWriteChar(struct expr * arg);
 
+struct cmd * new_cmd_ptr();
 void print_binop(enum BinOpType op);
 void print_unop(enum UnOpType op);
 void print_expr(struct expr * e);

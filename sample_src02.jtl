@@ -7,7 +7,9 @@ proc main() {
   s = 0;
   while (i < n) do {
     s = s + read_int();
-    i = i + 1
+    i = i + 1;
+    continue;
+    write_int(108)
   };
   write_int(s);
   write_char(10)

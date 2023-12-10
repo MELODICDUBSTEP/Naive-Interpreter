@@ -18,9 +18,9 @@ proc main() {
   int ptr ptr ref b = m;
   a = 100;
   b = 900;
-  write_int(a);
+  write_int(!a + 3);
   write_char(10);
-  write_int(n);
+  write_int(n + 2 <= 4);
   write_char(10);
   write_int(b); 
   write_char(10);

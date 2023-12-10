@@ -295,6 +295,56 @@ void step(res_prog * r)
       ConList_push_front(c -> d.SEQ.right, r -> ectx, Type::Seq);
       break; 
 
+    case T_END_PROC:
+    {
+      var_vector.pop_back();
+      r -> foc = NULL;
+      break;
+    }
+    
+    case T_PROC:
+    {
+      std::unordered_map<std::string, variable_info> new_map;
+      func_proc_info info = func_proc_table[c -> d.PROC.name];
+
+      //assign the temporary variables
+      struct var_list * var_l = info.args;
+      struct expr_list * expr_l = c -> d.PROC.args;
+      var_vector.push_back(new_map);
+
+      while(var_l != NULL)
+      {
+        if(var_l -> is_ref == 0)
+        {
+            variable_info decl(var_l -> num_of_ptr);
+            var_vector[var_vector.size() - 1][var_l -> name] = decl;
+            variable_info::cnt--;
+            long long rhs = eval(expr_l -> data);
+            loc_val[search_var(var_l -> name).location] = rhs;
+        }
+        else
+        {
+            variable_info decl(var_l -> num_of_ptr);
+            decl.location = search_var(expr_l -> data -> d.VAR.name).location;
+            var_vector[var_vector.size() - 1][var_l -> name] = decl;
+            variable_info::cnt--;
+        }
+        var_l = var_l -> next;
+        expr_l = expr_l -> next;
+      }
+      r -> foc = info.body;
+
+      struct cmd * end = new_cmd_ptr();
+      end -> t = T_END_PROC;
+      end -> d.END_PROC = 1; 
+      ConList_push_front(end, r -> ectx, Type::Seq);  
+      //I add a end command to the evaluation context
+      //so that I can delete the variable info stack 
+      //when I leave a process
+
+      break;
+    }
+
     case T_IF:
       if (eval(c -> d.IF.cond)) {
         r -> foc = c -> d.IF.left;
