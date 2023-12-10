@@ -64,10 +64,6 @@
     return TM_CONT;
 }
 
-"return" {
-    return TM_RET;
-}
-
 "malloc" {
     return TM_MALLOC;
 }

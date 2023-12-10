@@ -9,6 +9,6 @@ func int abs(int n) {
 };
 
 proc main() {
-  write_int(abs(abs(read_int())));
+  write_int(1 + abs(abs(read_int())));
   write_char(10)
 }

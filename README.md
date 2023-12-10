@@ -28,6 +28,10 @@ C ::  =
         type V = E; C |
 
         type ref V = V; C |
+        
+        { C } |
+
+        (I can declare local variables in { C } )
 
         E = E |
 

@@ -159,6 +159,14 @@ struct expr * TFunc(char * name, struct expr_list * args) {
   return res;
 }
 
+struct cmd* TLocal(struct cmd * body)
+{
+  struct cmd * res = new_cmd_ptr();
+  res -> t = T_LOCAL;
+  res -> d.LOCAL.body = body;
+  return res;
+}
+
 struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_DECL;
@@ -167,6 +175,7 @@ struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr) {
   res -> d.DECL.body = body;
   return res;
 }
+
 
 struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right) {
   struct cmd * res = new_cmd_ptr();
@@ -258,12 +267,6 @@ struct cmd * TBreak() {
 struct cmd * TContinue() {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_CONTINUE;
-  return res;
-}
-
-struct cmd * TReturn() {
-  struct cmd * res = new_cmd_ptr();
-  res -> t = T_RETURN;
   return res;
 }
 
@@ -530,9 +533,6 @@ void print_cmd(struct cmd * c) {
     break;
   case T_CONTINUE:
     printf("CONTINUE");
-    break;
-  case T_RETURN:
-    printf("RETURN");
     break;
   case T_WI:
     printf("WRITEINT(");

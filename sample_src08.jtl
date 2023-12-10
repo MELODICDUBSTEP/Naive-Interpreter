@@ -1,0 +1,24 @@
+int a;
+
+proc main()
+{
+    a = 1;
+    int b = 3;
+    write_int(a);
+    write_char(10);
+    a = 2;
+    write_int(a);
+    write_char(10);
+    {
+        int c = 1;
+        int a = 4;
+        int d = 9;
+        write_int(a);
+        write_char(10);
+        b = 5
+    };
+    write_int(a);
+    write_char(10);
+    write_int(b);
+    write_char(10)
+}

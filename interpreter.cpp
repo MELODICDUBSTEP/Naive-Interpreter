@@ -100,10 +100,8 @@ res_prog * init_res_prog(struct glob_item_list * globlist)
     {
       loc_val[variable_info::cnt] = 0;
       variable_info new_var_info(p -> data -> d.GLOB_VAR.num_of_ptr);
-      //std::cout << "cnt right now " << variable_info::cnt << std::endl;
       glob_var_state[(std::string)p -> data -> d.GLOB_VAR.name] = new_var_info;
       variable_info::cnt--;
-      //std::cout << "cnt right now " << variable_info::cnt << std::endl;
       break;
     }
     case T_FUNC_DEF:
@@ -159,11 +157,13 @@ long long eval(struct expr * e, res_prog * r)
       var_vector[var_vector.size() - 1][ret] = decl;
       variable_info::cnt--;
       
+      //preprocessing : create these variables in function definition
       var_vector.push_back(new_map);
       while(var_l != NULL)
       {
         if(var_l -> is_ref == 0)
         {
+          //similar to DECL_ASGN
             variable_info decl(var_l -> num_of_ptr);
             long long rhs = eval(expr_l -> data, r);
             var_vector[var_vector.size() - 1][var_l -> name] = decl;
@@ -172,6 +172,7 @@ long long eval(struct expr * e, res_prog * r)
         }
         else
         {
+          //similar to REF_DECL_ASGN
             variable_info decl(var_l -> num_of_ptr);
             decl.location = search_var(expr_l -> data -> d.VAR.name).location;
             var_vector[var_vector.size() - 1][var_l -> name] = decl;
@@ -180,10 +181,14 @@ long long eval(struct expr * e, res_prog * r)
         var_l = var_l -> next;
         expr_l = expr_l -> next;
       }
+
+      //A special way to implement function calling:
+      //create a new set of foc and ectx
       res_prog res_in_func;
       res_in_func.foc = info.body;
       struct cmd * end = new_cmd_ptr();
       end -> t = T_END_FUNC;
+      //This command mark the end of function calling
       ConList_push_front(end, res_in_func.ectx, Type::Seq); 
 
       while( !test_end(&res_in_func))
@@ -191,9 +196,10 @@ long long eval(struct expr * e, res_prog * r)
         step(&res_in_func);
       }
 
+      //return the value
       long long value_ret = loc_val[var_vector[var_vector.size() - 1][ret].location];
       var_vector[var_vector.size() - 1].erase(ret);
-      // std::cout << "value is  " << value_ret << std::endl;
+      //erase __return in the hash table
       return value_ret;
     }
 
@@ -307,6 +313,28 @@ bool step(res_prog * r)
         r -> foc = c -> d.DECL.body;
         break;
     }
+
+    //{ C }
+    case T_LOCAL:
+    {
+        //create a new hash map and delete it when going out of the brackets
+        std::unordered_map<std::string, variable_info> new_map;
+        var_vector.push_back(new_map);
+        r -> foc = c -> d.LOCAL.body;
+        struct cmd * out_of_scope = new_cmd_ptr();
+        out_of_scope -> t = T_OUT;
+        ConList_push_front(out_of_scope, r -> ectx, Type::Seq);
+        break;
+    }
+
+    //a label to design the local command : { C }
+    case T_OUT:
+    { 
+        var_vector.pop_back();
+        r -> foc = NULL;
+        break;
+    }
+
     case T_ASGN:
       switch (c -> d.ASGN.left -> t) {
       case T_VAR: {
@@ -315,6 +343,7 @@ bool step(res_prog * r)
         r -> foc = NULL;
         break;
       }
+
     case T_DEREF: { 
         long long lhs = eval(c -> d.ASGN.left -> d.DEREF.arg, r);
         long long rhs = eval(c -> d.ASGN.right, r);
@@ -366,11 +395,6 @@ bool step(res_prog * r)
       var_vector.pop_back();
       r -> foc = NULL;
       break;
-    }
-    
-    case T_RETURN:
-    {
-      r -> foc = NULL; 
     }
 
     case T_PROC:
@@ -500,23 +524,9 @@ bool step(res_prog * r)
 int test_end(res_prog * r) {
   if (r -> foc == NULL && r -> ectx.empty()) 
   {
-    //std::cout << 1 << std::endl;
     return 1;
   }
   else {
-    //std::cout << 0 << std::endl;
-    // if(var_vector[var_vector.size() - 1].count("n") == 1)
-    // {
-    //   std::cout << "the location for n is " << var_vector[var_vector.size() - 1]["n"].location << std::endl;
-    // }
-    // if(var_vector[var_vector.size() - 1].count("m") == 1)
-    // {
-    //   std::cout << "the location for m is " << var_vector[var_vector.size() - 1]["m"].location << std::endl;
-    // }
-    // if(var_vector[var_vector.size() - 1].count("s") == 1)
-    // {
-    //   std::cout << "the location for s is " << var_vector[var_vector.size() - 1]["s"].location << std::endl;
-    // }
     return 0;
   }
 }//if the focused program and the evaluation context are all empty then we end the program

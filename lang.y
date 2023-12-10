@@ -47,7 +47,7 @@ void * none;
 %token <none> TM_MUL TM_DIV TM_MOD
 %token <none> TM_UMINUS TM_DEREF
 %token <none> TM_PROC TM_FUNC
-%token <none> TM_CONT TM_BREAK TM_RET 
+%token <none> TM_CONT TM_BREAK 
 %token <n> TM_PTR
 %token <none> TM_REF
 
@@ -199,7 +199,11 @@ NT_PTRS:
   }
 
 NT_CMD:
-  TM_INT TM_IDENT TM_SEMICOL NT_CMD
+  TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE
+  {
+    $$ = (TLocal($2));
+  }
+| TM_INT TM_IDENT TM_SEMICOL NT_CMD
   {
     $$ = (TDecl($2, $4, 0));
   } //int a; ...
@@ -257,10 +261,6 @@ NT_CMD:
 | TM_BREAK
   {
     $$ = (TBreak());
-  }
-| TM_RET
-  {
-    $$ = (TReturn());
   }
 //call a proc
 | TM_IDENT TM_LEFT_PAREN NT_EXPRL TM_RIGHT_PAREN

@@ -5,7 +5,7 @@
 
 struct res_prog;
 struct res_prog * init_res_prog(struct glob_item_list * g);
-void step(struct res_prog * r);
+bool step(struct res_prog * r);
 int test_end(struct res_prog * r);
 
 #endif

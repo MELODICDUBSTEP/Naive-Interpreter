@@ -41,6 +41,8 @@ enum ExprType {
 
 enum CmdType {
   T_DECL = 0,
+  T_LOCAL,
+  T_OUT,
   T_DECL_ASGN,
   T_REF_DECL_ASGN,
   T_ASGN,
@@ -56,7 +58,6 @@ enum CmdType {
   T_WC,
   T_BREAK,
   T_CONTINUE,
-  T_RETURN,
   T_CLEAR
 };
 
@@ -97,6 +98,7 @@ And I added REF_DECL_ASGN to represent the command : type ref V = v
 struct cmd {
   enum CmdType t;
   union {
+    struct {struct cmd * body;} LOCAL; 
     struct {char * name; struct cmd * body; int num_of_ptr; } DECL;
     struct {char * name; struct cmd * body; int num_of_ptr; struct expr * right; } DECL_ASGN;
     struct {char * name; struct cmd * body; int num_of_ptr; char * right; } REF_DECL_ASGN;
@@ -110,7 +112,6 @@ struct cmd {
     struct {char * name; struct expr_list * args; } PROC;
     struct {void * none; } BREAK;
     struct {void * none; } CONTINUE;
-    struct {void * none; } RETURN;
     struct {struct expr * arg; } WI;
     struct {struct expr * arg; } WC;
   } d;
@@ -157,6 +158,7 @@ struct expr * TMalloc(struct expr * arg);
 struct expr * TReadInt();
 struct expr * TReadChar();
 struct expr * TFunc(char * name, struct expr_list * args);
+struct cmd* TLocal(struct cmd * body);
 struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr);
 struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right);
 struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right);

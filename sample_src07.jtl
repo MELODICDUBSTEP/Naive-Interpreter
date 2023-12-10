@@ -1,0 +1,17 @@
+func int a(int ref n)
+{
+    if(n == 1)
+    then {
+        __return = 1
+    }
+    else {
+        n = n - 1;
+        __return = (n + 1) * a(n)
+    }
+};
+
+proc main()
+{
+    int n = 5;
+    write_int(a(n))
+}
