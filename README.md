@@ -56,7 +56,7 @@ GLOB_ITEM :: =
 
                 (I call them type V below)
 
-                func FUNC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C } |
+                func type FUNC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C } |
 
                 proc PROC_NAME (type (ref) V, type (ref) V, ..., type (ref) V) { C }
 

@@ -1,6 +1,6 @@
 int ptr a;
 
-proc p(int b)
+proc p(int ref b)
 {
     *a = 200;
     a = 100;
@@ -21,7 +21,7 @@ proc main()
     write_int(a);
     write_char(10);
     a = &b;
-    p(5);
+    p(b);
     write_int(b);
     write_char(10)
 }

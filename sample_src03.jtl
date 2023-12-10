@@ -1,19 +1,14 @@
-func abs(int ref n, int ptr ptr ref k) {
+func int abs(int n) {
   if (n >= 0)
   then {
-    __return = n
+    __return = n + 1
   }
   else {
     __return = - n
-  };
-  return
+  }
 };
 
 proc main() {
-  int k = 4;
-  int m = k;
-  int ptr a = k + m;
-  int ref r = a;
-  write_int(abs(read_int()));
+  write_int(abs(abs(read_int())));
   write_char(10)
 }

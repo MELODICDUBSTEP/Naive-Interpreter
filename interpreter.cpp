@@ -38,7 +38,10 @@ variable_info & search_var(std::string name)
 
 enum class Type 
 {
-  Seq, WhileBody
+  Seq, 
+  WhileBody,
+  BinopL,
+  BinopR
 };
 
 class cont
@@ -131,7 +134,7 @@ res_prog * init_res_prog(struct glob_item_list * globlist)
 }
 
 
-long long eval(struct expr * e) 
+long long eval(struct expr * e, res_prog * r) 
 {
   switch (e -> t) {
   case T_CONST:
@@ -140,26 +143,80 @@ long long eval(struct expr * e)
   case T_VAR:
     return loc_val[search_var(e -> d.VAR.name).location];
 
+  case T_FUNC:
+    {
+      std::unordered_map<std::string, variable_info> new_map;
+      func_proc_info info = func_proc_table[e -> d.FUNC.name];
+      
+      //assign the temporary variables
+      struct var_list * var_l = info.args;
+      struct expr_list * expr_l = e -> d.FUNC.args;
+
+      //I have to have a variable for me to store the return value
+      std::string ret = "__return";
+      loc_val[variable_info::cnt] = 0;
+      variable_info decl;
+      var_vector[var_vector.size() - 1][ret] = decl;
+      variable_info::cnt--;
+      
+      var_vector.push_back(new_map);
+      while(var_l != NULL)
+      {
+        if(var_l -> is_ref == 0)
+        {
+            variable_info decl(var_l -> num_of_ptr);
+            long long rhs = eval(expr_l -> data, r);
+            var_vector[var_vector.size() - 1][var_l -> name] = decl;
+            variable_info::cnt--;
+            loc_val[search_var(var_l -> name).location] = rhs;
+        }
+        else
+        {
+            variable_info decl(var_l -> num_of_ptr);
+            decl.location = search_var(expr_l -> data -> d.VAR.name).location;
+            var_vector[var_vector.size() - 1][var_l -> name] = decl;
+            variable_info::cnt--;
+        }
+        var_l = var_l -> next;
+        expr_l = expr_l -> next;
+      }
+      res_prog res_in_func;
+      res_in_func.foc = info.body;
+      struct cmd * end = new_cmd_ptr();
+      end -> t = T_END_FUNC;
+      ConList_push_front(end, res_in_func.ectx, Type::Seq); 
+
+      while( !test_end(&res_in_func))
+      {
+        step(&res_in_func);
+      }
+
+      long long value_ret = loc_val[var_vector[var_vector.size() - 1][ret].location];
+      var_vector[var_vector.size() - 1].erase(ret);
+      // std::cout << "value is  " << value_ret << std::endl;
+      return value_ret;
+    }
+
   case T_BINOP:
     if (e -> d.BINOP.op == T_AND) {
-      if (eval(e -> d.BINOP.left)) {
-        return eval(e -> d.BINOP.right);
+      if (eval(e -> d.BINOP.left, r)) {
+        return eval(e -> d.BINOP.right, r);
       }
       else {
         return 0;
       }
     }
     else if (e -> d.BINOP.op == T_OR) {
-      if (eval(e -> d.BINOP.left)) {
+      if (eval(e -> d.BINOP.left, r)) {
         return 1;
       }
       else {
-        return eval(e -> d.BINOP.right);
+        return eval(e -> d.BINOP.right, r);
       }
     }
     else {
-      long long left_val = eval(e -> d.BINOP.left);
-      long long right_val = eval(e -> d.BINOP.right);
+      long long left_val = eval(e -> d.BINOP.left, r);
+      long long right_val = eval(e -> d.BINOP.right, r);
       switch (e -> d.BINOP.op) {
       case T_PLUS:
         return left_val + right_val;
@@ -189,14 +246,14 @@ long long eval(struct expr * e)
     }
   case T_UNOP:
     if (e -> d.UNOP.op == T_NOT) {
-      return ! eval(e -> d.UNOP.arg);
+      return ! eval(e -> d.UNOP.arg, r);
     }
     else {
-      return - eval(e -> d.UNOP.arg);
+      return - eval(e -> d.UNOP.arg, r);
     }
 
   case T_DEREF:
-    return loc_val[eval(e -> d.DEREF.arg)];
+    return loc_val[eval(e -> d.DEREF.arg, r)];
 
   case T_ADDR_OF:
   {
@@ -204,7 +261,7 @@ long long eval(struct expr * e)
   }
 
   case T_MALLOC: {
-    long long arg_val = eval(e -> d.MALLOC.arg);
+    long long arg_val = eval(e -> d.MALLOC.arg, r);
     if (arg_val % 8 != 0) {
       arg_val = (arg_val | 7) + 1;
     }
@@ -225,7 +282,9 @@ long long eval(struct expr * e)
   return 1;
 }//evaluation function
 
-void step(res_prog * r) 
+//The return type for step is to decide when should I go out of
+//stepping
+bool step(res_prog * r) 
 {
   if (r -> foc == NULL) 
   {
@@ -251,14 +310,14 @@ void step(res_prog * r)
     case T_ASGN:
       switch (c -> d.ASGN.left -> t) {
       case T_VAR: {
-        long long rhs = eval(c -> d.ASGN.right);
+        long long rhs = eval(c -> d.ASGN.right, r);
         loc_val[search_var(c -> d.ASGN.left -> d.VAR.name).location] = rhs;
         r -> foc = NULL;
         break;
       }
     case T_DEREF: { 
-        long long lhs = eval(c -> d.ASGN.left -> d.DEREF.arg);
-        long long rhs = eval(c -> d.ASGN.right);
+        long long lhs = eval(c -> d.ASGN.left -> d.DEREF.arg, r);
+        long long rhs = eval(c -> d.ASGN.right, r);
         loc_val[lhs] = rhs;
         r -> foc = NULL;
         break;
@@ -274,7 +333,7 @@ void step(res_prog * r)
       variable_info decl(c -> d.DECL_ASGN.num_of_ptr);
       var_vector[var_vector.size() - 1][c -> d.DECL_ASGN.name] = decl;
       variable_info::cnt--;
-      long long rhs = eval(c -> d.DECL_ASGN.right);
+      long long rhs = eval(c -> d.DECL_ASGN.right, r);
       loc_val[search_var(c -> d.DECL_ASGN.name).location] = rhs;
       r -> foc = c -> d.DECL_ASGN.body;
       break;
@@ -295,6 +354,13 @@ void step(res_prog * r)
       ConList_push_front(c -> d.SEQ.right, r -> ectx, Type::Seq);
       break; 
 
+    case T_END_FUNC:
+    {
+      var_vector.pop_back();
+      r -> foc = NULL;
+      return 1;
+    }
+
     case T_END_PROC:
     {
       var_vector.pop_back();
@@ -302,6 +368,11 @@ void step(res_prog * r)
       break;
     }
     
+    case T_RETURN:
+    {
+      r -> foc = NULL; 
+    }
+
     case T_PROC:
     {
       std::unordered_map<std::string, variable_info> new_map;
@@ -316,10 +387,10 @@ void step(res_prog * r)
       {
         if(var_l -> is_ref == 0)
         {
+            long long rhs = eval(expr_l -> data, r);
             variable_info decl(var_l -> num_of_ptr);
             var_vector[var_vector.size() - 1][var_l -> name] = decl;
             variable_info::cnt--;
-            long long rhs = eval(expr_l -> data);
             loc_val[search_var(var_l -> name).location] = rhs;
         }
         else
@@ -336,7 +407,6 @@ void step(res_prog * r)
 
       struct cmd * end = new_cmd_ptr();
       end -> t = T_END_PROC;
-      end -> d.END_PROC = 1; 
       ConList_push_front(end, r -> ectx, Type::Seq);  
       //I add a end command to the evaluation context
       //so that I can delete the variable info stack 
@@ -346,7 +416,7 @@ void step(res_prog * r)
     }
 
     case T_IF:
-      if (eval(c -> d.IF.cond)) {
+      if (eval(c -> d.IF.cond, r)) {
         r -> foc = c -> d.IF.left;
       }
       else {
@@ -355,7 +425,7 @@ void step(res_prog * r)
       break;
 
     case T_WHILE:
-      if (eval(c -> d.WHILE.cond)) {
+      if (eval(c -> d.WHILE.cond, r)) {
         r -> foc = c -> d.WHILE.body;
         ConList_push_front(c, r -> ectx, Type::WhileBody);
       }
@@ -363,6 +433,18 @@ void step(res_prog * r)
         r -> foc = NULL;
       }
       break;
+
+    case T_DO_WHILE:
+    {
+      cmd * while_cmd = new_cmd_ptr();
+      while_cmd -> t = T_WHILE;
+      while_cmd -> d.WHILE.body = c -> d.DO_WHILE.body;
+      while_cmd -> d.WHILE.cond = c -> d.DO_WHILE.cond;
+      ConList_push_front(while_cmd, r -> ectx, Type::Seq);
+      ConList_push_front(c -> d.DO_WHILE.body, r -> ectx, Type::Seq);
+      r -> foc = NULL;
+      break;
+    }
 
     case T_BREAK: 
     {
@@ -399,19 +481,20 @@ void step(res_prog * r)
       //Just like what "continue" command do
     }
     case T_WI: {
-      long long rhs = eval(c -> d.WI.arg);
+      long long rhs = eval(c -> d.WI.arg, r);
       std::cout << rhs;
       r -> foc = NULL;
       break;
     }
     case T_WC: {
-      char rhs = (char) eval(c -> d.WC.arg);
+      char rhs = (char) eval(c -> d.WC.arg, r);
       std::cout << rhs;
       r -> foc = NULL;
       break;
     }
     }
   }
+  return 0;
 }
 
 int test_end(res_prog * r) {

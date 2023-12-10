@@ -51,6 +51,7 @@ enum CmdType {
   T_DO_WHILE,
   T_PROC,
   T_END_PROC,
+  T_END_FUNC,
   T_WI,
   T_WC,
   T_BREAK,
@@ -107,7 +108,6 @@ struct cmd {
             struct cmd * incr; struct cmd * body; } FOR;
     struct {struct cmd * body; struct expr * cond; } DO_WHILE;
     struct {char * name; struct expr_list * args; } PROC;
-    int END_PROC;
     struct {void * none; } BREAK;
     struct {void * none; } CONTINUE;
     struct {void * none; } RETURN;
