@@ -2,7 +2,7 @@
 
 We develop this interpreter based on the template of interpreter and frontend code given in class.
 
-##### The rule of the grammar tree: (to be continued) 
+##### The rule of the grammar tree: 
 
 E :: = 
 
@@ -68,3 +68,21 @@ GLOB_ITEM :: =
 P ::= 
 
         GLOB_ITEM ; GLOB_ITEM ; ... ; GLOB_ITEM
+
+### command for running:
+
+GRAMMAR TREE PRINTING:
+
+make clean
+
+make main1
+
+./main1 sample_file
+
+RUNNING:
+
+make clean
+
+make
+
+./main sample_file
