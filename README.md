@@ -47,7 +47,7 @@ C ::  =
 
         PROC_NAME (E, E, ..., E) |
 
-        continue | break | return
+        continue | break 
 
 
 GLOB_ITEM :: =  
