@@ -71,7 +71,7 @@ P ::=
 
 ### command for running:
 
-GRAMMAR TREE PRINTING:
+##### GRAMMAR TREE PRINTING:
 
 make clean
 
@@ -79,7 +79,7 @@ make main1
 
 ./main1 sample_file
 
-RUNNING:
+##### RUNNING:
 
 make clean
 
