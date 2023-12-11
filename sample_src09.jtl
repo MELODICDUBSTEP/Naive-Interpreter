@@ -1,0 +1,21 @@
+proc main() {
+  int n;
+  int i;
+  int s;
+  n = read_int();
+  for 
+  {
+    i = 0;
+    s = 0
+  }
+  (i < n) 
+  {
+    s = s + read_int()
+  } 
+  {
+    i = i + 1
+  }
+  ;
+  write_int(s);
+  write_char(10)
+}

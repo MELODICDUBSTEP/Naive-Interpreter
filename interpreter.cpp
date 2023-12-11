@@ -448,6 +448,21 @@ bool step(res_prog * r)
       }
       break;
 
+    case T_FOR:
+      {
+        r -> foc = c -> d.FOR.init;
+        struct cmd * while_cmd = new_cmd_ptr();
+        while_cmd -> t = T_WHILE;
+        while_cmd -> d.WHILE.cond = c -> d.FOR.cond;
+        struct cmd * while_body = new_cmd_ptr();
+        while_body -> t = T_SEQ;
+        while_body -> d.SEQ.left = c -> d.FOR.body;
+        while_body -> d.SEQ.right = c -> d.FOR.incr;
+        while_cmd -> d.WHILE.body = while_body;
+        ConList_push_front(while_cmd, r -> ectx, Type::Seq);
+        break;
+      }
+
     case T_WHILE:
       if (eval(c -> d.WHILE.cond, r)) {
         r -> foc = c -> d.WHILE.body;
