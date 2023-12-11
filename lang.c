@@ -436,6 +436,11 @@ void print_expr_list(struct expr_list * es) {
 void print_cmd(struct cmd * c) {
   int num, num1, num2;
   switch (c -> t) {
+  case T_LOCAL:
+    printf("LOCAL(");
+    print_cmd(c -> d.LOCAL.body);
+    printf(")");
+    break;
   case T_DECL:
     printf("DECL(");
     printf("INT ");

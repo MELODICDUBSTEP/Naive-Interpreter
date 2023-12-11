@@ -1,17 +1,30 @@
-func int a(int ref n)
-{
+func int a(int ref n, int ref t)
+{  
+    t = t - 10;
     if(n == 1)
     then {
+        int b = 3;
         __return = 1
     }
+    
     else {
         n = n - 1;
-        __return = (n + 1) * a(n)
+        {
+            write_char(10)
+        };
+        write_int(t);
+        write_char(10);
+        int m = (n + 1) * a(n, t);
+        write_int(t);
+        write_char(10);
+        __return = m
     }
 };
 
 proc main()
 {
     int n = 5;
-    write_int(a(n))
+    int t = 100;
+    write_int(a(n, t));
+    write_char(10)
 }
