@@ -229,7 +229,7 @@ struct cmd * TWhile(struct expr * cond, struct cmd * body) {
 }
 
 struct cmd * TFor(struct cmd * init, struct expr * cond,
-                  struct cmd * incr, struct cmd * body) {
+                  struct cmd * body, struct cmd * incr) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_FOR;
   res -> d.FOR.init = init;

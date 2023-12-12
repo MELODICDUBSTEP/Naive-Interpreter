@@ -487,29 +487,69 @@ bool step(res_prog * r)
     case T_FOR:
       {
         r -> foc = c -> d.FOR.init;
-        struct cmd * while_cmd = new_cmd_ptr();
-        while_cmd -> t = T_WHILE;
-        while_cmd -> d.WHILE.cond = c -> d.FOR.cond;
-        struct cmd * while_body = new_cmd_ptr();
-        while_body -> t = T_SEQ;
-        while_body -> d.SEQ.left = c -> d.FOR.body;
-        while_body -> d.SEQ.right = c -> d.FOR.incr;
-        while_cmd -> d.WHILE.body = while_body;
-        ConList_push_front(while_cmd, r -> ectx, Type::Seq);
+        struct cmd * for_body = new_cmd_ptr();
+        for_body -> t = T_FOR_BODY;
+        for_body -> d.FOR_BODY.cond = c -> d.FOR.cond;
+        for_body -> d.FOR_BODY.body = c -> d.FOR.body;
+        for_body -> d.FOR_BODY.incr = c -> d.FOR.incr;
+        ConList_push_front(for_body, r -> ectx, Type::Seq);
         break;
       }
 
-    case T_WHILE:
+    case T_FOR_BODY:
     {
-      long long result = eval(c -> d.WHILE.cond, r);
       std::unordered_map<std::string, variable_info> new_map;
       var_vector.push_back(new_map);
-      r -> foc = c -> d.LOCAL.body;
+
       struct cmd * out_of_scope = new_cmd_ptr();
       out_of_scope -> t = T_OUT;
       ConList_push_front(out_of_scope, r -> ectx, Type::Seq);
+
+      struct cmd * for_body = new_cmd_ptr();
+      for_body -> t = T_FOR_BODY2;
+      for_body -> d.FOR_BODY2.body = c -> d.FOR_BODY.body;
+      for_body -> d.FOR_BODY2.cond = c -> d.FOR_BODY.cond;
+      for_body -> d.FOR_BODY2.incr = c -> d.FOR_BODY.incr;
+      r -> foc = for_body;
+      break;
+    }
+
+    case T_FOR_BODY2:
+    {
+      long long result = eval(c -> d.FOR_BODY2.cond, r);
       if (result) {
-        r -> foc = c -> d.WHILE.body;
+        r -> foc = c -> d.FOR_BODY2.body;
+        ConList_push_front(c, r -> ectx, Type::WhileBody);
+        ConList_push_front(c -> d.FOR_BODY2.incr, r -> ectx, Type::WhileBody);
+      }
+      else {
+        r -> foc = NULL;
+      }
+      break;
+    }
+
+    case T_WHILE:
+    {
+      std::unordered_map<std::string, variable_info> new_map;
+      var_vector.push_back(new_map);
+
+      struct cmd * out_of_scope = new_cmd_ptr();
+      out_of_scope -> t = T_OUT;
+      ConList_push_front(out_of_scope, r -> ectx, Type::Seq);
+
+      struct cmd * while_body = new_cmd_ptr();
+      while_body -> t = T_WHILE_BODY;
+      while_body -> d.WHILE_BODY.body = c -> d.WHILE.body;
+      while_body -> d.WHILE_BODY.cond = c -> d.WHILE.cond;
+      r -> foc = while_body;
+      break;
+    }
+
+    case T_WHILE_BODY:
+    {
+      long long result = eval(c -> d.WHILE_BODY.cond, r);
+      if (result) {
+        r -> foc = c -> d.WHILE_BODY.body;
         ConList_push_front(c, r -> ectx, Type::WhileBody);
       }
       else {
@@ -517,6 +557,7 @@ bool step(res_prog * r)
       }
       break;
     }
+
     case T_DO_WHILE:
     {
       cmd * while_cmd = new_cmd_ptr();
@@ -552,7 +593,6 @@ bool step(res_prog * r)
         r -> ectx.pop_front();
       }
       //right now the type of evalution context is Seq
-    
       else
       {
         r -> foc = r -> ectx.front() -> c;

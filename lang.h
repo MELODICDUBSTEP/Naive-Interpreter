@@ -49,7 +49,10 @@ enum CmdType {
   T_SEQ,
   T_IF,
   T_WHILE,
+  T_WHILE_BODY,
   T_FOR,
+  T_FOR_BODY,
+  T_FOR_BODY2,
   T_DO_WHILE,
   T_PROC,
   T_END_PROC,
@@ -106,6 +109,9 @@ struct cmd {
     struct {struct cmd * left; struct cmd * right; } SEQ;
     struct {struct expr * cond; struct cmd * left; struct cmd * right; } IF;
     struct {struct expr * cond; struct cmd * body; } WHILE;
+    struct {struct expr * cond; struct cmd * body; } WHILE_BODY;
+    struct {struct expr * cond; struct cmd * body; struct cmd * incr;} FOR_BODY;
+    struct {struct expr * cond; struct cmd * body; struct cmd * incr;} FOR_BODY2;
     struct {struct cmd * init; struct expr * cond;
             struct cmd * incr; struct cmd * body; } FOR;
     struct {struct cmd * body; struct expr * cond; } DO_WHILE;
@@ -167,7 +173,7 @@ struct cmd * TSeq(struct cmd * left, struct cmd * right);
 struct cmd * TIf(struct expr * cond, struct cmd * left, struct cmd * right);
 struct cmd * TWhile(struct expr * cond, struct cmd * body);
 struct cmd * TFor(struct cmd * init, struct expr * cond,
-                  struct cmd * incr, struct cmd * body);
+                  struct cmd * body, struct cmd * incr);
 struct cmd * TDoWhile(struct cmd * body, struct expr * cond);
 struct cmd * TProc(char * name, struct expr_list * args);
 struct cmd * TBreak();

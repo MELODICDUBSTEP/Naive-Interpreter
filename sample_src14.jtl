@@ -1,0 +1,12 @@
+proc main()
+{
+    int i = 0;
+    while(i < 1)
+    do
+    {
+        write_int(i);
+        write_char(10);
+        continue;
+        i = i + 1
+    }
+}
