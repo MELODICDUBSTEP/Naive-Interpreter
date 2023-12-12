@@ -19,15 +19,15 @@ C ::  =
         
         int V; C |
 
-        int ptr V; C |
+        int ptr V|
 
-        int ptr ... ptr V; C |
+        int ptr ... ptr V|
 
         (I call them type V below)
         
-        type V = E; C |
+        type V = E|
 
-        type ref V = V; C |
+        type ref V = V|
         
         { C } |
 

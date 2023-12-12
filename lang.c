@@ -167,32 +167,29 @@ struct cmd* TLocal(struct cmd * body)
   return res;
 }
 
-struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr) {
+struct cmd * TDecl(char * name, int num_of_ptr) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_DECL;
   res -> d.DECL.name = name;
   res -> d.DECL.num_of_ptr = num_of_ptr;
-  res -> d.DECL.body = body;
   return res;
 }
 
 
-struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right) {
+struct cmd * TDeclAsgn(char * name, int num_of_ptr, struct expr * right) {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_DECL_ASGN;
   res -> d.DECL_ASGN.name = name;
   res -> d.DECL_ASGN.num_of_ptr = num_of_ptr;
-  res -> d.DECL_ASGN.body = body;
   res -> d.DECL_ASGN.right = right;
   return res;
 }
 
-struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right)
+struct cmd * TRefDeclAsgn(char * name, int num_of_ptr, char * right)
 {
   struct cmd * res = new_cmd_ptr();
   res -> t = T_REF_DECL_ASGN;
   res -> d.REF_DECL_ASGN.name = name;
-  res -> d.REF_DECL_ASGN.body = body;
   res -> d.REF_DECL_ASGN.num_of_ptr = num_of_ptr;
   res -> d.REF_DECL_ASGN.right = right;
   return res;
@@ -449,8 +446,7 @@ void print_cmd(struct cmd * c) {
     {
       printf("PTR ");
     }
-    printf("%s,", c -> d.DECL.name);
-    print_cmd(c -> d.DECL.body);
+    printf("%s", c -> d.DECL.name);
     printf(")");
     break;
   case T_DECL_ASGN:
@@ -463,8 +459,6 @@ void print_cmd(struct cmd * c) {
     }
     printf("%s,", c -> d.DECL_ASGN.name);
     print_expr(c -> d.DECL_ASGN.right);
-    printf(",");
-    print_cmd(c -> d.DECL_ASGN.body);
     printf(")");
     break;
   case T_REF_DECL_ASGN:
@@ -476,8 +470,7 @@ void print_cmd(struct cmd * c) {
       printf("PTR ");
     }
     printf("REF ");
-    printf("%s,%s,", c -> d.REF_DECL_ASGN.name, c -> d.REF_DECL_ASGN.right);
-    print_cmd(c -> d.REF_DECL_ASGN.body);
+    printf("%s,%s", c -> d.REF_DECL_ASGN.name, c -> d.REF_DECL_ASGN.right);
     printf(")");
     break;
   case T_ASGN:

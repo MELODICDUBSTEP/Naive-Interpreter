@@ -3,11 +3,17 @@ func int test_prime(int ref n) {
   int flag;
   i = 2;
   flag = 1;
+  write_int(i * i);
+  write_char(10);
+  write_int(n);
+  write_char(10);
   while (i * i <= n) do {
     if (n % i == 0)
-    then { flag = 0; break }
+    then { flag = 0; break}
     else { flag = 1 };
-    i = i + 1
+    i = i + 1;
+    write_int(i);
+    write_char(10)
   };
   n = 100;
   __return = flag

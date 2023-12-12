@@ -1,4 +1,3 @@
-int ptr a;
 
 proc p(int ref b, int ptr a)
 {
@@ -15,12 +14,8 @@ proc main()
 {
     int b;
     b = 1;
-    a = 2;
     write_int(b);
     write_char(10);
-    write_int(a);
-    write_char(10);
-    a = &b;
     p(b, &b);
     write_int(b);
     write_char(10);

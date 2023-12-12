@@ -19,6 +19,8 @@ std::unordered_map<long long, long long> loc_val;
 std::unordered_map<std::string, func_proc_info> func_proc_table;
 std::vector<std::unordered_map<std::string, variable_info>> var_vector;
 //a hash table mapping the variable name to the value, the ptr count and the location
+std::vector<std::vector<std::unordered_map<std::string, variable_info>>> var_vector_temp;
+//var_vector_temp will store the var_vector when calling process or function
 
 variable_info & search_var(std::string name)
 {
@@ -30,6 +32,15 @@ variable_info & search_var(std::string name)
     }
   }
   std::cout << "There's no variable named " << name << std::endl;
+  return var_vector[0][name];
+}
+
+variable_info & Fsearch_var(std::string name)
+{
+  if(var_vector[var_vector.size() - 1].count(name) == 1)
+    {
+      return var_vector[var_vector.size() - 1][name];
+    }
   return var_vector[0][name];
 }
 
@@ -126,6 +137,8 @@ res_prog * init_res_prog(struct glob_item_list * globlist)
   //And a stack representing the global variable
 
   auto entrance = func_proc_table["main"];
+  std::unordered_map<std::string, variable_info> new_map;
+  var_vector.push_back(new_map);
   res -> foc = entrance.body;
   //Find the main function and jump into it
   return res;
@@ -145,10 +158,10 @@ long long eval(struct expr * e, res_prog * r)
     {
       std::unordered_map<std::string, variable_info> new_map;
       func_proc_info info = func_proc_table[e -> d.FUNC.name];
-      
       //assign the temporary variables
       struct var_list * var_l = info.args;
       struct expr_list * expr_l = e -> d.FUNC.args;
+      var_vector.push_back(new_map);
 
       //I have to have a variable for me to store the return value
       std::string ret = "__return";
@@ -156,9 +169,10 @@ long long eval(struct expr * e, res_prog * r)
       variable_info decl;
       var_vector[var_vector.size() - 1][ret] = decl;
       variable_info::cnt--;
-      
       //preprocessing : create these variables in function definition
-      var_vector.push_back(new_map);
+      
+
+
       while(var_l != NULL)
       {
         if(var_l -> is_ref == 0)
@@ -182,6 +196,15 @@ long long eval(struct expr * e, res_prog * r)
         expr_l = expr_l -> next;
       }
 
+      std::vector<std::unordered_map<std::string, variable_info>> tmp_vector = var_vector;
+      tmp_vector.pop_back();
+      std::unordered_map<std::string, variable_info> tmp_map1 = var_vector[0];
+      std::unordered_map<std::string, variable_info> tmp_map2 = var_vector.back();
+      var_vector.clear();
+      var_vector.push_back(tmp_map1);
+      var_vector.push_back(tmp_map2);
+      var_vector_temp.push_back(tmp_vector);
+
       //A special way to implement function calling:
       //create a new set of foc and ectx
       res_prog res_in_func;
@@ -198,7 +221,9 @@ long long eval(struct expr * e, res_prog * r)
 
       //return the value
       long long value_ret = loc_val[var_vector[var_vector.size() - 1][ret].location];
-      var_vector[var_vector.size() - 1].erase(ret);
+      std::vector<std::unordered_map<std::string, variable_info>> tmp = var_vector_temp.back();
+      var_vector_temp.pop_back();
+      var_vector = tmp;
       //erase __return in the hash table
       return value_ret;
     }
@@ -310,7 +335,7 @@ bool step(res_prog * r)
         variable_info decl(c -> d.DECL.num_of_ptr);
         var_vector[var_vector.size() - 1][c -> d.DECL.name] = decl;
         variable_info::cnt--;
-        r -> foc = c -> d.DECL.body;
+        r -> foc = NULL;
         break;
     }
 
@@ -364,7 +389,7 @@ bool step(res_prog * r)
       variable_info::cnt--;
       long long rhs = eval(c -> d.DECL_ASGN.right, r);
       loc_val[search_var(c -> d.DECL_ASGN.name).location] = rhs;
-      r -> foc = c -> d.DECL_ASGN.body;
+      r -> foc = NULL;
       break;
     }
 
@@ -374,7 +399,7 @@ bool step(res_prog * r)
       decl.location = search_var(c -> d.REF_DECL_ASGN.right).location;
       var_vector[var_vector.size() - 1][c -> d.REF_DECL_ASGN.name] = decl;
       variable_info::cnt--;
-      r -> foc = c -> d.DECL_ASGN.body;
+      r -> foc = NULL;
       break;
     }
 
@@ -385,14 +410,16 @@ bool step(res_prog * r)
 
     case T_END_FUNC:
     {
-      var_vector.pop_back();
       r -> foc = NULL;
       return 1;
     }
 
     case T_END_PROC:
     {
-      var_vector.pop_back();
+      std::vector<std::unordered_map<std::string, variable_info>> tmp = var_vector_temp.back();
+      var_vector_temp.pop_back();
+      var_vector = tmp;
+
       r -> foc = NULL;
       break;
     }
@@ -401,11 +428,10 @@ bool step(res_prog * r)
     {
       std::unordered_map<std::string, variable_info> new_map;
       func_proc_info info = func_proc_table[c -> d.PROC.name];
-
+      var_vector.push_back(new_map);
       //assign the temporary variables
       struct var_list * var_l = info.args;
       struct expr_list * expr_l = c -> d.PROC.args;
-      var_vector.push_back(new_map);
 
       while(var_l != NULL)
       {
@@ -427,6 +453,16 @@ bool step(res_prog * r)
         var_l = var_l -> next;
         expr_l = expr_l -> next;
       }
+
+      std::vector<std::unordered_map<std::string, variable_info>> tmp_vector = var_vector;
+      tmp_vector.pop_back();
+      std::unordered_map<std::string, variable_info> tmp_map1 = var_vector[0];
+      std::unordered_map<std::string, variable_info> tmp_map2 = var_vector.back();
+      var_vector.clear();
+      var_vector.push_back(tmp_map1);
+      var_vector.push_back(tmp_map2);
+      var_vector_temp.push_back(tmp_vector);
+
       r -> foc = info.body;
 
       struct cmd * end = new_cmd_ptr();
@@ -464,7 +500,15 @@ bool step(res_prog * r)
       }
 
     case T_WHILE:
-      if (eval(c -> d.WHILE.cond, r)) {
+    {
+      long long result = eval(c -> d.WHILE.cond, r);
+      std::unordered_map<std::string, variable_info> new_map;
+      var_vector.push_back(new_map);
+      r -> foc = c -> d.LOCAL.body;
+      struct cmd * out_of_scope = new_cmd_ptr();
+      out_of_scope -> t = T_OUT;
+      ConList_push_front(out_of_scope, r -> ectx, Type::Seq);
+      if (result) {
         r -> foc = c -> d.WHILE.body;
         ConList_push_front(c, r -> ectx, Type::WhileBody);
       }
@@ -472,7 +516,7 @@ bool step(res_prog * r)
         r -> foc = NULL;
       }
       break;
-
+    }
     case T_DO_WHILE:
     {
       cmd * while_cmd = new_cmd_ptr();

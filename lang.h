@@ -99,9 +99,9 @@ struct cmd {
   enum CmdType t;
   union {
     struct {struct cmd * body;} LOCAL; 
-    struct {char * name; struct cmd * body; int num_of_ptr; } DECL;
-    struct {char * name; struct cmd * body; int num_of_ptr; struct expr * right; } DECL_ASGN;
-    struct {char * name; struct cmd * body; int num_of_ptr; char * right; } REF_DECL_ASGN;
+    struct {char * name; int num_of_ptr; } DECL;
+    struct {char * name; int num_of_ptr; struct expr * right; } DECL_ASGN;
+    struct {char * name; int num_of_ptr; char * right; } REF_DECL_ASGN;
     struct {struct expr * left; struct expr * right; } ASGN;
     struct {struct cmd * left; struct cmd * right; } SEQ;
     struct {struct expr * cond; struct cmd * left; struct cmd * right; } IF;
@@ -159,9 +159,9 @@ struct expr * TReadInt();
 struct expr * TReadChar();
 struct expr * TFunc(char * name, struct expr_list * args);
 struct cmd* TLocal(struct cmd * body);
-struct cmd * TDecl(char * name, struct cmd * body, int num_of_ptr);
-struct cmd * TDeclAsgn(char * name, struct cmd * body, int num_of_ptr, struct expr * right);
-struct cmd * TRefDeclAsgn(char * name, struct cmd * body, int num_of_ptr, char * right);
+struct cmd * TDecl(char * name, int num_of_ptr);
+struct cmd * TDeclAsgn(char * name,  int num_of_ptr, struct expr * right);
+struct cmd * TRefDeclAsgn(char * name,  int num_of_ptr, char * right);
 struct cmd * TAsgn(struct expr * left, struct expr * right);
 struct cmd * TSeq(struct cmd * left, struct cmd * right);
 struct cmd * TIf(struct expr * cond, struct cmd * left, struct cmd * right);

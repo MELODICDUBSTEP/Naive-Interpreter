@@ -1,0 +1,31 @@
+int a;
+
+proc b(int ref n)
+{
+    n = 3;
+    write_int(r);
+    write_char(10);
+    write_int(a);
+    write_char(10)
+};
+
+proc main()
+{
+    a = 1;
+    int a = 2;
+    int r = 7;
+    for
+    {
+        int i = 1
+    }
+    (i < 2)
+    {
+        i = i + 1
+    }
+    {
+        a = 3;
+        int r = 8;
+        int a = 4;
+        b(a)
+    }
+}
