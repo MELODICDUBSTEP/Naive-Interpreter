@@ -17,7 +17,7 @@ E :: =
 
 C ::  = 
         
-        int V; C |
+        int V|
 
         int ptr V|
 
